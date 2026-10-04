@@ -49,13 +49,18 @@
   - Turborepo passes `CI`, `DO_NOT_TRACK` and `EXPO_NO_TELEMETRY` through to tasks.
 - **Why:** Turborepo's strict mode hides undeclared environment variables from tasks, so Expo would have run without the telemetry opt-out. Passing them through doesn't affect the cache.
 
-### D-155 · Accept the unfixed `braces` advisory (autopilot)
+### D-155 · Accept two unfixed advisories in build tools (autopilot)
 
-- **Finding:** Dependency review failed on the scaffold: `braces` 3.0.3 has a high-severity advisory, [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), published 2026-09-18. Deeply nested patterns can exhaust the stack. No fixed version exists yet. Expo's Metro and Jest reach it through micromatch.
+- **Finding:** Dependency review failed on the scaffold, on two high-severity advisories that have no fixed version yet:
+  - [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) (published 2026-09-18): in `braces` 3.0.3, deeply nested patterns can exhaust the stack. Expo's Metro and Jest reach it through micromatch.
+  - [GHSA-86w9-cpqp-85rv](https://github.com/advisories/GHSA-86w9-cpqp-85rv) (published 2026-09-03): `node-forge` 1.4.0 accepts some malformed RSA signatures. Only the Expo CLI uses it.
 - **Options:**
-  - ★ Accept this one advisory in dependency review, with the reasons on record, until a fix is released.
-  - Hold the app until `braces` is fixed.
-  - Replace `braces` with a fork.
-- **Decision:** Accept it (autopilot). It's listed in `allow-ghsas`, and in a new "Accepted advisories" table in `docs/operations/dependency-updates.md`.
-- **Why:** Only build and test tools use it, on glob patterns from the project's own configuration, never on user input, and it isn't part of the app. A denial of service on a developer's own build is a low risk. Holding the app would stop all app work for an unknown time.
-- **Follow-up:** Remove the exception when `braces` releases a fix. Dependabot alerts will show it.
+  - ★ Accept these two advisories in dependency review, with the reasons on record, until fixes are released.
+  - Hold the app until both packages are fixed.
+  - Replace them with forks.
+- **Decision:** Accept them (autopilot). They're listed in `allow-ghsas`, and in a new "Accepted advisories" table in `docs/operations/dependency-updates.md`.
+- **Why:** Neither is part of the app.
+  - `braces` only matches glob patterns from the project's own configuration, during builds and tests, never user input. A denial of service on a developer's own build is a low risk.
+  - `node-forge` is used by the Expo CLI on a developer's machine, to read local iOS signing certificates and to sign development manifests. Production builds don't use it.
+  - Holding the app would stop all app work for an unknown time.
+- **Follow-up:** Remove each exception when its package releases a fix. Dependabot alerts will show it.
