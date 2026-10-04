@@ -1,0 +1,45 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+# CodeRabbit AI review. Reviewers cite rule IDs from docs/engineering-standards.md.
+# This file instructs an AI agent: changes are reviewed like code (SEC10).
+language: en-US
+tone_instructions: "Be concise and specific. Cite rule IDs from docs/engineering-standards.md (for example SEC1, SYNC3) for every finding. Skip style issues Prettier or ESLint already cover."
+early_access: false
+reviews:
+  profile: chill
+  request_changes_workflow: false
+  high_level_summary: true
+  poem: false
+  review_status: true
+  collapse_walkthrough: true
+  auto_review:
+    enabled: true
+    drafts: false
+    ignore_usernames:
+      - "renovate[bot]"
+  path_filters:
+    - "!pnpm-lock.yaml"
+    - "!CHANGELOG.md"
+  path_instructions:
+    - path: "supabase/**"
+      instructions: "Check SEC1 and SEC2 (default-deny RLS with tests for every policy, hardened security definer functions), DATA5 (constraints), and SYNC5 with DB1-DB3 (migrations that are forward-only, safe for offline clients, with no backfills inside migrations)."
+    - path: "packages/core/**"
+      instructions: "Check DATA1-DATA4: integer minor units only (never floating-point money), explicit currency, calendar dates kept apart from instants, device-generated UUIDv7. This package must stay pure TypeScript with no React, React Native or I/O (ARC1)."
+    - path: "packages/data/**"
+      instructions: "Check SYNC1-SYNC4: idempotent uploads, the transient versus permanent upload-error policy, and that the upload queue is never blocked or silently dropped."
+    - path: ".github/workflows/**"
+      instructions: "Check SEC9: actions pinned to full commit SHAs, permissions {} by default with commented least privilege, persist-credentials false, no pull_request_target with PR code, untrusted input only through environment variables."
+    - path: "AGENTS.md"
+      instructions: "SEC10: this file instructs AI agents. Flag anything that widens what agents may do or weakens the safety rules."
+    - path: "CLAUDE.md"
+      instructions: "SEC10: this file instructs AI agents. Flag anything that widens what agents may do or weakens the safety rules."
+    - path: ".claude/**"
+      instructions: "SEC10: these files instruct AI agents. Flag anything that widens what agents may do or weakens the safety rules."
+knowledge_base:
+  code_guidelines:
+    enabled: true
+    filePatterns:
+      - "AGENTS.md"
+      - "docs/engineering-standards.md"
+      - "docs/pr-review.md"
+chat:
+  auto_reply: true
