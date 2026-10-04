@@ -1,0 +1,19 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Supply-chain safeguards. See SECURITY.md.
+#
+# Refuse any package version published less than 3 days ago (value in minutes).
+# Hijacked releases are usually detected and pulled within hours to days, so a
+# waiting period keeps them out of our lockfile.
+minimumReleaseAge: 4320
+
+# Transitive dependencies may only come from the npm registry, never from git
+# repositories or tarball URLs.
+blockExoticSubdeps: true
+
+# Fail the install when a dependency wants to run an install script that is not
+# explicitly allowed (true) or denied (false) in `allowBuilds`.
+strictDepBuilds: true
+allowBuilds: {}
