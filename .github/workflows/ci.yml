@@ -16,11 +16,12 @@ env:
   # Developer tools must not phone home from CI.
   TURBO_TELEMETRY_DISABLED: "1"
   DO_NOT_TRACK: "1"
+  EXPO_NO_TELEMETRY: "1"
   COREPACK_ENABLE_DOWNLOAD_PROMPT: "0"
 
 jobs:
   checks:
-    name: Format, lint, typecheck and test
+    name: Format, lint, typecheck, test and build
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
@@ -57,8 +58,12 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-      - name: Lint, typecheck and test
-        run: pnpm turbo run lint typecheck test
+      - name: Lint, typecheck, test and build
+        run: pnpm turbo run lint typecheck test build
+
+      # Native modules must match the Expo SDK, or native builds break.
+      - name: Check the app's dependencies against its Expo SDK
+        run: pnpm --filter @spend-tracker/app exec expo install --check
 
   workflow-security:
     name: Workflow security (actionlint, zizmor)
@@ -153,8 +158,9 @@ jobs:
           key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
           restore-keys: pnpm-store-${{ runner.os }}-
 
+      # Only the sync tests and the packages they use, not the app.
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile --filter "@spend-tracker/sync..."
 
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:

@@ -3,6 +3,10 @@
   "ui": "stream",
   "agentGuidance": false,
   "globalDependencies": [".nvmrc", "pnpm-workspace.yaml"],
+  // Strict mode hides undeclared variables from tasks. These only switch off
+  // telemetry and interactive prompts, so they pass through without
+  // affecting the cache.
+  "globalPassThroughEnv": ["CI", "DO_NOT_TRACK", "EXPO_NO_TELEMETRY"],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
