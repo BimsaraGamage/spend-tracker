@@ -26,3 +26,32 @@ export {
   localDateIn,
   parseLocalDate,
 } from "./dates/local-date";
+export {
+  type ActualCost,
+  type CostType,
+  type CostTypeId,
+  type EstimatedCost,
+  type FixedObligation,
+  type MonthKey,
+  type Tag,
+  type TagId,
+} from "./costs/types";
+export { daysInMonth, monthKeyFrom, parseMonthKey } from "./costs/month-key";
+export {
+  effectiveTags,
+  isUntagged,
+  matchesTags,
+  sumActualByType,
+  sumAllActual,
+  sumAllEstimated,
+  sumByTags,
+  sumEstimatedByType,
+  sumUntagged,
+} from "./costs/arithmetic";
+export {
+  calculateForecast,
+  type ForecastInput,
+  type ForecastPoint,
+  type ForecastResult,
+  forecastGraphPoints,
+} from "./costs/forecast";
