@@ -232,4 +232,88 @@ describe("forecastGraphPoints", () => {
     );
     expect(result).toEqual({ ok: false, error: "currency-mismatch" });
   });
+
+  it("rejects mixed currency in variableSpent", () => {
+    const result = forecastGraphPoints(
+      makeInput({ variableSpent: { amountMinor: 20000, currency: "USD" } }),
+    );
+    expect(result).toEqual({ ok: false, error: "currency-mismatch" });
+  });
+
+  it("rejects mixed currency in obligations", () => {
+    const result = forecastGraphPoints(
+      makeInput({
+        unpaidObligations: [
+          {
+            id: "o1" as Uuid,
+            month: "2026-10" as MonthKey,
+            costTypeId: "t1" as CostTypeId,
+            amount: { amountMinor: 1000, currency: "USD" },
+            dueDay: 15,
+            paid: false,
+          },
+        ],
+      }),
+    );
+    expect(result).toEqual({ ok: false, error: "currency-mismatch" });
+  });
+});
+
+describe("calculateForecast additional branches", () => {
+  it("projects exhaustion based on obligation due day", () => {
+    const input = {
+      allocation: lkr(100000),
+      currentDay: 10,
+      totalDays: 31,
+      actualSpent: lkr(50000),
+      variableSpent: lkr(30000),
+      observedVariableDays: 10,
+      // Remaining is 50,000
+      // Variable rate is 3,000/day
+      // Obligation is 40,000 on day 15
+      // by day 15, 5 days of variable spending = 15,000
+      // remaining before obligation = 35,000
+      // deduct 40,000 -> -5,000 (exhausts on day 15 due to obligation)
+      unpaidObligations: [makeObligation("o1", 40000, 15)],
+    };
+    const res = calculateForecast(input);
+    expect(res).toEqual({
+      ok: true,
+      value: {
+        status: "projected",
+        exhaustionDay: 15,
+        message:
+          "Projected exhaustion on day 15 when a fixed obligation is due.",
+        dailyRate: { amountMinor: 3000, currency: "LKR" },
+      },
+    });
+  });
+
+  it("projects exhaustion before obligation due date if variable spending is high", () => {
+    const input = {
+      allocation: lkr(100000),
+      currentDay: 10,
+      totalDays: 31,
+      actualSpent: lkr(50000),
+      variableSpent: lkr(60000), // rate: 6000/day
+      observedVariableDays: 10,
+      unpaidObligations: [
+        makeObligation("o1", 5000, 20), // Due in 10 days
+      ],
+    };
+    // rate: 6000. days until due: 10. spentByDue = 60000.
+    // runningRemaining = 50000. 60000 >= 50000!
+    // exhaustDay = 10 + floor(50000/6000) = 10 + 8 = 18.
+    const res = calculateForecast(input);
+    expect(res).toEqual({
+      ok: true,
+      value: {
+        status: "projected",
+        exhaustionDay: 18,
+        message:
+          "Projected exhaustion on day 18 based on variable spending rate.",
+        dailyRate: { amountMinor: 6000, currency: "LKR" },
+      },
+    });
+  });
 });

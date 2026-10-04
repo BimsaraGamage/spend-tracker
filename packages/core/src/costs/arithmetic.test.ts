@@ -305,3 +305,37 @@ describe("sumByTags with ANY/ALL (AC-03 scenario)", () => {
     expect(result).toEqual({ ok: true, value: lkr(10000) });
   });
 });
+
+describe("missing cost types", () => {
+  it("ignores costs whose type is missing from the map", () => {
+    const costTypes = new Map<CostTypeId, CostType>();
+    const estimates: EstimatedCost[] = [
+      {
+        id: "e1" as Uuid,
+        month: "2026-10" as MonthKey,
+        costTypeId: "missing" as CostTypeId,
+        amount: { amountMinor: 10000, currency: "LKR" },
+        tagIds: ["t1" as TagId],
+        note: "",
+      },
+    ];
+
+    const byTags = sumByTags(
+      estimates,
+      costTypes,
+      ["t1" as TagId],
+      "any",
+      "LKR",
+    );
+    expect(byTags).toEqual({
+      ok: true,
+      value: { amountMinor: 0, currency: "LKR" },
+    });
+
+    const untagged = sumUntagged(estimates, costTypes, "LKR");
+    expect(untagged).toEqual({
+      ok: true,
+      value: { amountMinor: 0, currency: "LKR" },
+    });
+  });
+});

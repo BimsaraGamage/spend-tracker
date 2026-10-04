@@ -166,7 +166,7 @@ export function calculateForecast(
     .map((o) => ({ ...o, effectiveDueDay: Math.min(o.dueDay, totalDays) }))
     .sort((a, b) => a.effectiveDueDay - b.effectiveDueDay);
 
-  let runningRemaining = afterFixed.amountMinor;
+  let runningRemaining = remaining.amountMinor;
   for (const obligation of sortedObligations) {
     const daysUntilDue = obligation.effectiveDueDay - currentDay;
     if (daysUntilDue > 0) {
