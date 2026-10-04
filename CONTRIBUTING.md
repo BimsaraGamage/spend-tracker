@@ -61,6 +61,7 @@ Then reinstall the hooks, because the rc file is built into them: `pnpm exec lef
 
 - **Trunk-based:** `main` is always releasable. Work happens on short-lived branches named `feat/<slug>`, `fix/<slug>`, `docs/<slug>` or `chore/<slug>`.
 - **Small pull requests:** one purpose each, ideally around 400 hand-written lines or fewer (generated files excluded).
+- **Clean branch history:** to catch up with `main`, rebase your branch onto it (`git rebase origin/main`) instead of merging `main` in, then `git push --force-with-lease`. Fold small fixes into the commit they belong to with `git commit --fixup` and `git rebase --autosquash`.
 - **PR titles follow [Conventional Commits](https://www.conventionalcommits.org).** PRs are squash-merged, so the title becomes the commit message on `main` and drives the changelog:
   - `feat(app): add transaction list`
   - `fix(sync): retry uploads after a network timeout`
