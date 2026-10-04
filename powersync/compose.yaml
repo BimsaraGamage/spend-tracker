@@ -60,7 +60,6 @@ services:
       POWERSYNC_CONFIG_PATH: /config/service.yaml
       PS_DATA_SOURCE_URI: postgresql://powersync_role:${PS_REPLICATION_PASSWORD:?run ./powersync/up.sh}@db.supabase.internal:5432/postgres
       PS_STORAGE_URI: postgresql://powersync_storage:${PS_STORAGE_PASSWORD:?run ./powersync/up.sh}@storage:5432/powersync_storage
-      PS_SUPABASE_JWT_SECRET: ${PS_SUPABASE_JWT_SECRET:?run ./powersync/up.sh}
       PS_ADMIN_TOKEN: ${PS_ADMIN_TOKEN:?run ./powersync/up.sh}
     volumes:
       - ./service.yaml:/config/service.yaml:ro

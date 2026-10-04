@@ -7,16 +7,8 @@
 set -euo pipefail
 cd "$(dirname "$0")"
 
-# The local stack's development signing secret, which the service needs to
-# verify sessions. It's the same on every machine, but read it rather than
-# copy it here.
-if ! status=$(supabase status --output env); then
+if ! supabase status >/dev/null; then
   echo "The local Supabase stack isn't running. Start it with: supabase start" >&2
-  exit 1
-fi
-jwt_secret=$(sed -n 's/^JWT_SECRET="\{0,1\}\([^"]*\)"\{0,1\}$/\1/p' <<<"${status}")
-if [[ -z "${jwt_secret}" ]]; then
-  echo "The local Supabase stack isn't running Auth, which the sync service needs." >&2
   exit 1
 fi
 
@@ -33,7 +25,6 @@ cat >.env <<EOF
 PS_REPLICATION_PASSWORD=${replication_password}
 PS_STORAGE_PASSWORD=${storage_password}
 PS_ADMIN_TOKEN=${admin_token}
-PS_SUPABASE_JWT_SECRET=${jwt_secret}
 EOF
 
 docker compose up --detach --wait
