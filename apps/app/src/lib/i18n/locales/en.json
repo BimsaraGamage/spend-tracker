@@ -1,0 +1,16 @@
+{
+  "home": {
+    "title": "Spend Tracker",
+    "description": "Your ledgers will appear here."
+  },
+  "configuration": {
+    "title": "This build of the app isn't set up",
+    "description": "Whoever built it needs to fix these settings:",
+    "problems": {
+      "missing": "{{variable}} is missing.",
+      "notAnAddress": "{{variable}} isn't a web address.",
+      "insecureAddress": "{{variable}} must start with https://.",
+      "secretKey": "{{variable}} holds Supabase's secret key, which must never be part of an app. Use the publishable key."
+    }
+  }
+}

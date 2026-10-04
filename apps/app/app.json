@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "Spend Tracker",
+    "slug": "spend-tracker",
+    "version": "0.0.0",
+    "scheme": "spendtracker",
+    "userInterfaceStyle": "automatic",
+    "web": {
+      "output": "single"
+    },
+    "plugins": ["expo-router", "expo-localization"],
+    "experiments": {
+      "typedRoutes": true,
+      "reactCompiler": true
+    }
+  }
+}

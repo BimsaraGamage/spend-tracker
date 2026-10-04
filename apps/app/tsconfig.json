@@ -1,0 +1,11 @@
+{
+  "extends": "@spend-tracker/config/tsconfig/base.json",
+  "compilerOptions": {
+    // What Expo's own base configuration sets for React Native and the web.
+    "jsx": "react-jsx",
+    "lib": ["DOM", "ES2023"],
+    "module": "preserve",
+    "customConditions": ["react-native"]
+  },
+  "include": ["src", ".expo/types/**/*.ts"]
+}

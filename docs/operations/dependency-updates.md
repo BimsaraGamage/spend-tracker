@@ -11,6 +11,15 @@
 - **Expo-managed packages** (`expo`, `react-native`, …) are left alone. They move only in dedicated Expo SDK upgrade PRs (`npx expo install --fix`).
 - PR titles follow Conventional Commits (`chore(deps): …`, `fix(deps): …`), so the PR-title check passes.
 
+## Accepted advisories
+
+Dependency review blocks pull requests that add a dependency with a known high or critical vulnerability. An advisory with no fixed version can be accepted, after review, in `allow-ghsas` in [`.github/workflows/dependency-review.yml`](../../.github/workflows/dependency-review.yml). Each accepted advisory is listed here, and removed as soon as a fix is released.
+
+| Advisory                                                                 | Package                                        | Why it's accepted                                                                                                                                                                                                                                          |
+| ------------------------------------------------------------------------ | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm) | `braces` 3.0.3 and older, via micromatch       | No fixed version exists. Only build and test tools (Metro, Jest) use it, on glob patterns from the project's own configuration, never on user input. It isn't part of the app. Accepted 2026-10-04 (journal D-155).                                        |
+| [GHSA-86w9-cpqp-85rv](https://github.com/advisories/GHSA-86w9-cpqp-85rv) | `node-forge` 1.4.0 and older, via the Expo CLI | No fixed version exists. Only the Expo CLI uses it, on a developer's machine: to read local iOS signing certificates and to sign development manifests. It isn't part of the app, and production builds don't use it. Accepted 2026-10-04 (journal D-155). |
+
 ## One-time setup (maintainer)
 
 1. Open <https://github.com/apps/renovate> and click **Install** (the app is free).

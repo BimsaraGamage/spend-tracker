@@ -23,11 +23,21 @@ jobs:
           # build-time dependencies. Lower severities surface as Dependabot alerts.
           fail-on-severity: high
           fail-on-scopes: runtime, development
+          # Advisories with no fixed version yet, accepted after review. Each
+          # one is explained in docs/operations/dependency-updates.md; remove
+          # it as soon as a fix is released.
+          allow-ghsas: GHSA-vfj7-8cjw-p6xm, GHSA-86w9-cpqp-85rv
           # Only licenses compatible with distributing the app under
           # Apache-2.0, including through app stores. Copyleft licenses
           # (GPL, AGPL, LGPL, SSPL) and source-available licenses are not
           # allowed without a deliberate exception.
+          #
+          # The Unicode data license and public-domain dedications are
+          # permissive. The LicenseRef-scancode-* names are how GitHub's
+          # license scanner reports them, for example in Babel's Unicode
+          # tables.
           allow-licenses: >-
             0BSD, Apache-2.0, BlueOak-1.0.0, BSD-2-Clause, BSD-3-Clause,
             CC-BY-3.0, CC-BY-4.0, CC0-1.0, ISC, MIT, MIT-0, MPL-2.0,
-            Python-2.0, Unlicense, Zlib
+            Python-2.0, Unicode-3.0, Unicode-DFS-2016, Unlicense, Zlib,
+            LicenseRef-scancode-public-domain, LicenseRef-scancode-unicode
