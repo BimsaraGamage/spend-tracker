@@ -1,0 +1,24 @@
+{
+  "name": "@spend-tracker/core",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Pure domain logic: money, currencies, IDs, dates and validation. No UI and no I/O.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint --max-warnings=0 .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage",
+    "generate:iso4217": "node scripts/generate-iso4217.mjs"
+  },
+  "devDependencies": {
+    "@spend-tracker/config": "workspace:*",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

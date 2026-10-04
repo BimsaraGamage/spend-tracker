@@ -43,6 +43,12 @@ export function base({ tsconfigRootDir }) {
       extends: [tseslint.configs.disableTypeChecked],
       languageOptions: { globals: globals.node },
     },
+    {
+      // Command-line tooling prints to the terminal. The no-console rule
+      // (CON6) is about app logs, which must go through the scrubbing logger.
+      files: ["**/scripts/**"],
+      rules: { "no-console": "off" },
+    },
     prettier,
   );
 }
