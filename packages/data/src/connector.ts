@@ -1,5 +1,5 @@
 /**
- * Connects the device database to the backend (ADR-0004, ADR-0008).
+ * Connects the device database to the backend (ADR-0004, ADR-0008, ADR-0014).
  *
  * PowerSync downloads each user's data through the Sync Streams. This
  * connector does the rest: it gives PowerSync the user's session, and uploads

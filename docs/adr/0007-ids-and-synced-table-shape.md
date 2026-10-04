@@ -1,6 +1,6 @@
 # ADR-0007: Device-generated IDs and a fixed synced-table shape
 
-- **Status:** Accepted
+- **Status:** Accepted, partly superseded by [ADR-0014](0014-upload-inserts-and-sync-indexes.md)
 - **Date:** 2026-10-04
 - **Decided by:** assistant during planning; confirmed by plan approval (journal D-29)
 
@@ -13,7 +13,7 @@ Rows are created offline on several devices, so the server can't hand out IDs. D
 - **IDs:** every synced row gets a UUIDv7 generated on the device. UUIDv7 is time-ordered, which keeps indexes efficient.
 - **Columns:** every synced table has `id`, `ledger_id`, `created_at`, `updated_at` and `deleted_at`.
 - **Deletes are soft.** Sync Streams exclude deleted rows, so they disappear from devices but stay recoverable on the server.
-- **Indexes:** the columns that RLS policies and app queries filter on are indexed, in Postgres and in the device schema. PowerSync evaluates sync filters on its own copy of the data, so they need no Postgres index (amended 2026-10-04, journal D-137).
+- **Indexes:** every column used in a sync filter is indexed.
 
 ## Consequences
 

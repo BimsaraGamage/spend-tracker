@@ -16,7 +16,7 @@
   - ★ Plain inserts. A retried insert that already arrived fails with a primary-key conflict (`23505` on `<table>_pkey`), which counts as applied.
   - Loosen the ledgers read policy, so creators can read a ledger that has no members yet.
   - Create ledgers through a SQL function.
-- **Decision:** Plain inserts (autopilot). SYNC2 and ADR-0008 are amended.
+- **Decision:** Plain inserts (autopilot). SYNC2 is amended, and [ADR-0014](../adr/0014-upload-inserts-and-sync-indexes.md) supersedes the upsert item of ADR-0008 (see D-147).
 - **Why:** Retries stay harmless, and the access rules stay as simple as they are.
 - **Rule that follows:** Local writes insert new rows and update existing ones. An `INSERT OR REPLACE` of an existing row would upload as an insert, and its changes would be ignored as a duplicate.
 - **Lesson:** "Upserts make retries idempotent" was true until it met row level security. Try the assumption against the real rules before building on it.
