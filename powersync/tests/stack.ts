@@ -10,6 +10,8 @@
 import { execFileSync } from "node:child_process";
 import { createHmac, randomUUID } from "node:crypto";
 
+import { createClient } from "@supabase/supabase-js";
+
 const powerSyncUrl = "http://127.0.0.1:8080";
 
 interface LocalStack {
@@ -94,6 +96,18 @@ export async function createUser(): Promise<TestUser> {
     { email, password },
   )) as { access_token: string; user: { id: string } };
   return { id: session.user.id, accessToken: session.access_token };
+}
+
+/** A supabase-js client acting as the user, like the app's client once they've signed in. */
+export function supabaseAs(user: TestUser) {
+  return createClient(stack.apiUrl, stack.publishableKey, {
+    global: { headers: { Authorization: `Bearer ${user.accessToken}` } },
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false,
+    },
+  });
 }
 
 function asUser(user: TestUser): Record<string, string> {

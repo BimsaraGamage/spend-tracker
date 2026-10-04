@@ -2,7 +2,7 @@
   "name": "@spend-tracker/sync",
   "version": "0.0.0",
   "private": true,
-  "description": "Sync Streams, the local PowerSync service, and the tests that prove what each user receives.",
+  "description": "Sync Streams, the local PowerSync service, and the tests that prove what each user's devices receive and send.",
   "license": "Apache-2.0",
   "type": "module",
   "scripts": {
@@ -11,8 +11,11 @@
     "test:integration": "vitest run"
   },
   "devDependencies": {
+    "@powersync/common": "catalog:",
     "@spend-tracker/config": "workspace:*",
     "@spend-tracker/core": "workspace:*",
+    "@spend-tracker/data": "workspace:*",
+    "@supabase/supabase-js": "catalog:",
     "@types/node": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",

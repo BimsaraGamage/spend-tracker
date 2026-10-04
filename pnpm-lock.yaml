@@ -138,12 +138,21 @@ importers:
 
   powersync:
     devDependencies:
+      '@powersync/common':
+        specifier: 'catalog:'
+        version: 2.3.1
       '@spend-tracker/config':
         specifier: workspace:*
         version: link:../packages/config
       '@spend-tracker/core':
         specifier: workspace:*
         version: link:../packages/core
+      '@spend-tracker/data':
+        specifier: workspace:*
+        version: link:../packages/data
+      '@supabase/supabase-js':
+        specifier: 'catalog:'
+        version: 2.117.2
       '@types/node':
         specifier: 'catalog:'
         version: 24.19.0
