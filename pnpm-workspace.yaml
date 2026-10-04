@@ -1,6 +1,8 @@
 packages:
   - apps/*
   - packages/*
+  # Sync Streams and their integration tests.
+  - powersync
 
 # Supply-chain safeguards. See SECURITY.md.
 #
