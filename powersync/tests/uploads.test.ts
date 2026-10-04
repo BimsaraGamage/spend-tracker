@@ -1,5 +1,6 @@
 /**
- * What happens to the changes a device makes (SYNC2, SYNC3, ADR-0008).
+ * What happens to the changes a device makes (SYNC2, SYNC3, ADR-0008,
+ * ADR-0014).
  *
  * The app's upload connector sends them through the real REST API as the
  * user, against the local stack: `supabase start`, then ./powersync/up.sh.

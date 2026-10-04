@@ -1,6 +1,6 @@
 /**
  * What to do with an upload the server answered with an error (SYNC2, SYNC3,
- * ADR-0008).
+ * ADR-0008, ADR-0014).
  */
 
 /** The parts of a Supabase (PostgREST) error that decide what happens next. */
