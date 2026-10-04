@@ -13,3 +13,10 @@
   - the lost-device procedure;
   - commit-signing setup on a new machine;
   - the milestone gates: before real data, before inviting others, before the app stores.
+
+### D-92 · Diagnostic result: every PR into `main` is blocked (autopilot)
+
+- **Result:** This PR, opened after the rule change, is blocked too. So the "extra approval for unattributed changes" rule (now confirmed `false`) is **not** the cause.
+- **Leading explanation (moderate confidence):** Other projects report that under "require signed commits", _unverified_ commits on a PR branch block even a squash merge, although GitHub signs the squash commit itself. Every commit in these PRs shows "unknown key", because the maintainer's signing key isn't registered on GitHub yet (D-53).
+- **Next step:** The maintainer registers the signing key as a GitHub _Signing Key_. If the PRs are still blocked afterwards, the merge box in the browser names the exact rule.
+- **Lesson:** A deferred step ("add the key later") can quietly turn into a blocker once a rule depends on it. When you defer something, note which rules rely on it.
