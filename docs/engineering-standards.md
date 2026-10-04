@@ -117,7 +117,9 @@ Version 1.0, 2026-10-04. These rules apply to every change in this repository, w
 
 ## 5. Local-first sync (SYNC)
 
-- **SYNC1: Every synced table has** `id uuid`, `ledger_id`, `created_at`, `updated_at` and `deleted_at`. Every column used in a sync-stream filter is indexed.
+- **SYNC1: Every synced table has** `id uuid`, `ledger_id`, `created_at`, `updated_at` and `deleted_at`. The `ledgers` table's own `id` is its ledger id.
+  - PowerSync evaluates sync-stream filters itself, on its copy of the data, so Postgres indexes don't speed them up.
+  - Index the columns that RLS policies and app queries filter on, in Postgres and in the device schema.
 - **SYNC2: Uploads are idempotent.** Inserts are upserts by primary key, so a retry never creates a duplicate.
 - **SYNC3: Upload error policy.**
   - Transient errors (network failures, timeouts, 5xx responses) retry with backoff.
@@ -129,7 +131,8 @@ Version 1.0, 2026-10-04. These rules apply to every change in this repository, w
   - Never rename or drop a synced column, or tighten a constraint that old clients may violate, in a single release.
   - Ship the client change before any server constraint that depends on it.
 - **SYNC6: Sync rules grant the minimum.**
-  - Data is scoped to ledger membership.
+  - Data is scoped to ledger membership, mirroring the RLS read policies.
+  - Streams list their columns; never `SELECT *`. A new column reaches devices only when it's added to a stream on purpose.
   - Never sync other users' profiles, or any data the UI doesn't need.
 
 ## 6. Security (SEC)

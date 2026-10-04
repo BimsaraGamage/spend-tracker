@@ -1,0 +1,50 @@
+# yaml-language-server: $schema=https://unpkg.com/@powersync/service-sync-rules@0.42.0/schema/sync_rules.json
+#
+# Which rows reach each signed-in user's devices (ADR-0004, SYNC6).
+#
+# PowerSync copies every row the database publishes (migration
+# 20261004112812_sync_replication.sql), then uses these streams to decide who
+# receives which rows. They mirror the RLS read policies: a user receives a
+# ledger and its data while both their membership and the ledger are active,
+# exactly when private.has_ledger_role lets them read it. Change both together.
+#
+# Columns are listed one by one, so a column added later reaches devices only
+# when it is added here. deleted_at is never sent: soft-deleted rows don't
+# sync, and a device drops its copy when a row is soft-deleted (DATA6).
+#
+# The same file configures PowerSync Cloud (staging, production) and the local
+# service in compose.yaml. A running service only reads it at startup.
+
+config:
+  edition: 3
+
+streams:
+  # Everything in the user's ledgers, as one stream: a device holds a single
+  # subscription, and each ledger is one bucket.
+  ledger_data:
+    auto_subscribe: true
+    with:
+      my_ledgers: |
+        SELECT ledger_members.ledger_id FROM ledger_members
+          INNER JOIN ledgers ON ledgers.id = ledger_members.ledger_id
+        WHERE ledger_members.user_id = auth.user_id()
+          AND ledger_members.deleted_at IS NULL
+          AND ledgers.deleted_at IS NULL
+    queries:
+      - |
+        SELECT id, name, base_currency, time_zone, created_by, created_at, updated_at
+        FROM ledgers
+        WHERE id IN my_ledgers AND deleted_at IS NULL
+      - |
+        SELECT id, ledger_id, user_id, role, created_at, updated_at
+        FROM ledger_members
+        WHERE ledger_id IN my_ledgers AND deleted_at IS NULL
+      - |
+        SELECT id, ledger_id, name, currency, created_at, updated_at
+        FROM accounts
+        WHERE ledger_id IN my_ledgers AND deleted_at IS NULL
+      - |
+        SELECT id, ledger_id, account_id, amount_minor, currency, occurred_on, description,
+          created_by, created_at, updated_at
+        FROM transactions
+        WHERE ledger_id IN my_ledgers AND deleted_at IS NULL

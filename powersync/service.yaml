@@ -1,0 +1,44 @@
+# yaml-language-server: $schema=https://unpkg.com/@powersync/service-schema@1.26.1/json-schema/powersync-config.json
+#
+# The PowerSync service for local development and CI, started by compose.yaml.
+# Staging and production use PowerSync Cloud instead, configured in its
+# dashboard (docs/operations/sync-service.md).
+#
+# Every value that differs per run comes from a PS_* environment variable;
+# `!env` reads it when the service starts. See README.md.
+
+replication:
+  connections:
+    - type: postgresql
+      uri: !env PS_DATA_SOURCE_URI
+      # The local Supabase database has no TLS. Keep verify-full anywhere else.
+      sslmode: disable
+
+storage:
+  type: postgresql
+  uri: !env PS_STORAGE_URI
+  sslmode: disable
+
+port: 8080
+
+sync_config:
+  path: sync-config.yaml
+
+client_auth:
+  # The local Supabase stack signs sessions with its HS256 development secret.
+  # Hosted projects use asymmetric keys, which PowerSync Cloud verifies itself.
+  supabase: true
+  supabase_jwt_secret: !env PS_SUPABASE_JWT_SECRET
+
+api:
+  # Protects the admin API, which the health check in check.sh calls.
+  tokens:
+    - !env PS_ADMIN_TOKEN
+
+telemetry:
+  # Development tools must not phone home (NFR-SEC-6).
+  disable_telemetry_sharing: true
+
+healthcheck:
+  probes:
+    use_http: true
