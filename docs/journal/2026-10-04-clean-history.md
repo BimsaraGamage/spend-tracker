@@ -1,8 +1,8 @@
 # 2026-10-04 · Clean history and stacked pull requests
 
-### D-122 · Direction: clean, readable history inside branches too
+### D-122 · Linear PR history
 
-- **Direction (maintainer):** Keep the commit history inside branches clean and easy to understand, and keep branch management tidy.
+- **Decision:** Use linear, focused commit histories for PR branches.
 - **Action:**
   - PR branches are no longer updated by merging `main` into them, which had left "Merge remote-tracking branch…" commits. They're rebased onto their base and pushed with `--force-with-lease`.
   - Fixes are folded into the commit they belong to (fixup + autosquash).

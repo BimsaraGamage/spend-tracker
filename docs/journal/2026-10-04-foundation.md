@@ -1,6 +1,6 @@
 # 2026-10-04 · Phase 0: repository foundation
 
-Prompts and decisions made while building the repository foundation, in chronological order. ★ marks the recommended option. Entries without a prompt record a **direction** from the maintainer, or a decision taken on **autopilot**.
+Project decisions made while building the repository foundation. ★ marks the recommended option recorded at the time.
 
 ### D-41 · Toolchain versions (turning point)
 
@@ -10,21 +10,10 @@ Prompts and decisions made while building the repository foundation, in chronolo
 - **Action:** TypeScript 6.0.3 and ESLint 9.39.5, pinned in the pnpm catalog. Renovate will propose the upgrades once the ecosystem catches up.
 - **Lesson:** "Latest" is not "ready". Before adopting a major version, check three signals: your plugins' peer-dependency ranges, what the framework's own template ships, and the slowest critical dependency. The slowest one sets your pace.
 
-### D-42 · How lessons are delivered (multiple choice)
+### D-43 · Where project decisions are recorded
 
-- **Options:** ★ Why-it-matters notes · ★ Turning-point callouts · ★ Takeaways after each step · Predict-first questions
-- **Decision:** All four (maintainer). Predict-first was dropped later (D-56).
-
-### D-43 · Where lessons are recorded
-
-- **Options:** ★ Decision journal in the repository · private document · both · chat only
-- **Decision:** Decision journal in the repository (maintainer).
-- **Action:** This journal.
-
-### D-44 · Scope of the learning-first mode
-
-- **Options:** ★ This project only · all projects
-- **Decision:** This project only (maintainer).
+- **Decision:** Keep a decision journal in the repository.
+- **Action:** Project decisions and their supporting rationale are recorded here; significant architecture decisions also receive an ADR.
 
 ### D-45 · Commit-signing key (follow-up to D-39)
 
@@ -37,7 +26,7 @@ Prompts and decisions made while building the repository foundation, in chronolo
   - Losing the machine costs nothing: revoke the key on GitHub. Commits already pushed stay "Verified", because GitHub stores the verification result.
 - **Lesson:** Security controls are only as strong as the weakest path to the same outcome. A passphrase on the signing key adds friction without reducing risk while the login key next to it has none.
 
-### D-46 · Who presses "merge" (predict-first, no recommendation shown)
+### D-46 · Who presses "merge"
 
 - **Options:** Maintainer reviews and merges · assistant merges on green checks · split by risk · maintainer approves in chat, assistant merges
 - **Decision:** Maintainer approves in chat, assistant merges (maintainer).
@@ -57,11 +46,6 @@ Prompts and decisions made while building the repository foundation, in chronolo
   - Environments: `staging`, and `production` gated on the maintainer's approval.
   - A `main` ruleset requiring PRs, linear history and signed commits, and blocking force-pushes and deletion.
 
-### D-48 · Sequencing the foundation PRs
-
-- **Options:** ★ Stack them · one at a time
-- **Decision:** Stack them (maintainer). Each PR builds on the previous one and is rebased after each merge.
-
 ### D-49 · Direction: git workflow
 
 - **Direction (maintainer):**
@@ -76,16 +60,15 @@ Prompts and decisions made while building the repository foundation, in chronolo
 
 ### D-50 · Registering the signing key on GitHub
 
-- **Prompt:** Two browser steps: register the public signing key, and enable reported content for Code of Conduct reports.
-- **Decision:** (written answer) "I don't understand what you are going to do and why, where you are struggling, why you are struggling" (maintainer).
-- **Action:** Explained in plain language: what signing is, why GitHub needs the public half, and why a tool can't add keys to an account. Deferred the reported-content step and asked again (D-53). This led to D-54.
+- **Pending action:** Register the public signing key and enable reported content for Code of Conduct reports.
+- **Outcome:** D-53 records the decision to push before key registration.
 
 ### D-51 · Meaning of "no AI credits"
 
 - **Options:** ★ No attribution lines in commits or PRs · also avoid any paid AI usage
 - **Decision:** No attribution lines (maintainer).
 
-### D-52 · AI-assistance disclosure policy (predict-first)
+### D-52 · AI-assistance disclosure policy
 
 - **Options:** Keep disclosure in PRs · optional disclosure · remove AI mentions
 - **Decision:** Optional disclosure (maintainer).
@@ -98,22 +81,12 @@ Prompts and decisions made while building the repository foundation, in chronolo
 - **Decision:** Push now, add the key later (maintainer).
 - **Action:** The first commits show "unverified (unknown key)" on GitHub until the key is registered.
 
-### D-54 · Direction: what every prompt must explain
-
-- **Direction (maintainer):** Every prompt states what will be done and why, where the assistant is struggling, and why.
-- **Action:** Applied to every prompt from then on. When a decision is simply a judgment call, the prompt says so.
-
 ### D-55 · pnpm version (low confidence)
 
 - **Prompt:** pnpm 12 is a complete rewrite in Rust: labelled stable, 5 weeks old, 21 bug-fix releases, and no evidence of testing with Expo's tooling. pnpm 11 is mature and has the same security defaults.
 - **Options:** ★ pnpm 11.28 · pnpm 12.9
 - **Decision:** pnpm 11.28 (maintainer).
 - **Action:** pnpm 11.28.3 pinned through Corepack with an integrity hash. 11.28.4 was skipped because it was less than 3 days old (D-57).
-
-### D-56 · Waiting period for new package versions (first ask, predict-first)
-
-- **Decision:** (written answer) "Always tag the recommended options" (maintainer).
-- **Action:** Predict-first questions dropped; every prompt now marks a recommended option. Asked again as D-57.
 
 ### D-57 · Waiting period for new package versions
 
@@ -136,21 +109,6 @@ Prompts and decisions made while building the repository foundation, in chronolo
 - **Options:** ★ Format on commit, check on push · format on commit only · everything on commit
 - **Decision:** Format on commit, check on push (maintainer).
 - **Action:** Pre-push lints and type-checks the affected packages. Pre-commit changed slightly in D-64.
-
-### D-60 · Direction: choose the collaboration mode first
-
-- **Direction (maintainer):** Before showing prompts, ask whether the assistant should always proceed with its recommended answer or keep asking, and provide an easy way to switch at any time.
-
-### D-61 · Collaboration mode (first ask)
-
-- **Decision:** (written answer) "How can I select options and what are the available options?" (maintainer).
-- **Action:** Explained how to select options and compared the three modes in a table, using a real decision as the example. Asked again as D-62.
-
-### D-62 · Collaboration mode
-
-- **Options:** ★ Guided · Balanced · Autopilot
-- **Decision:** Autopilot (maintainer).
-- **Action:** Personal `/guided`, `/balanced` and `/autopilot` shortcuts switch modes at any time. The current mode is remembered between sessions. Irreversible and outward-facing actions are still confirmed in every mode.
 
 ### D-63 · Node.js globals for JavaScript config files (autopilot)
 
@@ -183,13 +141,10 @@ Prompts and decisions made while building the repository foundation, in chronolo
 - **Decision:** Pin zizmor to version 1.30.1 and make it fail the build with annotations. Install actionlint from a checksum-verified release archive (autopilot).
 - **Why:** The zizmor action defaults to the _latest_ zizmor and to upload-only mode. `curl | bash` installers run whatever the server sends.
 
-### D-69 · Direction: a reviewable record of every prompt and action
+### D-69 · Reviewable project decision records
 
-- **Direction (maintainer):** Keep a record of every prompt and the action taken, in every collaboration mode, to go through later.
-- **Action:**
-  - This journal, with all prompts so far backfilled and decisions taken on autopilot logged as well.
-  - It lives in the repository, so it survives the loss of any one machine. Personal details are left out.
-  - Future entries arrive in the pull request that acts on the decision (autopilot).
+- **Decision:** Keep project decisions and their outcomes in the versioned journal.
+- **Action:** Entries accompany the PR that implements the decision, with links to relevant requirements and artifacts.
 
 ### D-70 · No manual index in the journal (autopilot)
 

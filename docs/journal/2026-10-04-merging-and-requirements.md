@@ -34,22 +34,9 @@
   - Functional requirements stay empty apart from the three walking-skeleton ones.
 - **Why:** The Source column keeps traceability, so it's always clear who asked for what. A requirement the maintainer never confirmed shouldn't silently become a commitment.
 
-### D-84 · Direction: switch to guided mode
-
-- **Direction (maintainer):** `/guided`. Switch the collaboration mode from autopilot to guided.
-- **Action:** From now on, every important decision, one-way door and low-confidence moment is asked as a prompt. Each prompt states what, why, where the assistant is struggling and why, and marks a recommended option. Takeaways follow each PR or milestone. The safety floor and this journal stay as they are.
-
 ### D-85 · How to unblock the merges
 
 - **Prompt:** GitHub says the base branch policy prohibits merging #2 and #3, but the API doesn't say which rule. Only the merge box in the browser shows it. How should we proceed?
 - **Options:** ★ The maintainer checks the merge box · keep building and check later · rebuild the ruleset rule by rule to find the culprit
 - **Decision:** The maintainer checks the merge box (maintainer).
 - **Action:** Waiting for the maintainer's report. The fix will be logged when it lands.
-
-### D-86 · Direction: switch to autopilot mode
-
-- **Direction (maintainer):** `/autopilot`. Switch the collaboration mode from guided to autopilot.
-- **Action:**
-  - The recommended option is taken at every decision, with a one-line "Decided: …, because …" note and a journal entry.
-  - The safety floor stays: merges, deletions, publishing, money and secrets still need the maintainer.
-  - While the merge-box report is pending, work continues on the next stacked PRs.
