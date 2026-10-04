@@ -5,7 +5,7 @@
 -- viewer of ledger a.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(20);
+select plan(21);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-00000000000a', 'a@example.test'), ('00000000-0000-4000-8000-00000000000b', 'b@example.test'), ('00000000-0000-4000-8000-00000000000c', 'c@example.test');
@@ -81,10 +81,11 @@ select throws_ok($$ select count(*) from public.ledgers $$,
   '42501', null, 'anonymous users cannot read ledgers');
 reset role;
 
--- A soft-deleted ledger hides its data, even from its owner.
-update public.ledgers set deleted_at = now() where id = '10000000-0000-4000-8000-00000000000a';
+-- The owner soft-deletes the ledger, which hides its data, even from them.
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-00000000000a","role":"authenticated"}', true);
 set local role authenticated;
+select lives_ok($$ update public.ledgers set deleted_at = now() where id = '10000000-0000-4000-8000-00000000000a' $$,
+  'the owner can soft-delete their ledger');
 select results_eq($$ select count(*) from public.transactions $$, $$ values (0::bigint) $$,
   'a soft-deleted ledger hides its data from its members');
 reset role;
