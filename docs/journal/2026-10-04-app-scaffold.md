@@ -48,3 +48,14 @@
   - the sync job installs only the packages its tests use;
   - Turborepo passes `CI`, `DO_NOT_TRACK` and `EXPO_NO_TELEMETRY` through to tasks.
 - **Why:** Turborepo's strict mode hides undeclared environment variables from tasks, so Expo would have run without the telemetry opt-out. Passing them through doesn't affect the cache.
+
+### D-155 · Accept the unfixed `braces` advisory (autopilot)
+
+- **Finding:** Dependency review failed on the scaffold: `braces` 3.0.3 has a high-severity advisory, [GHSA-vfj7-8cjw-p6xm](https://github.com/advisories/GHSA-vfj7-8cjw-p6xm), published 2026-09-18. Deeply nested patterns can exhaust the stack. No fixed version exists yet. Expo's Metro and Jest reach it through micromatch.
+- **Options:**
+  - ★ Accept this one advisory in dependency review, with the reasons on record, until a fix is released.
+  - Hold the app until `braces` is fixed.
+  - Replace `braces` with a fork.
+- **Decision:** Accept it (autopilot). It's listed in `allow-ghsas`, and in a new "Accepted advisories" table in `docs/operations/dependency-updates.md`.
+- **Why:** Only build and test tools use it, on glob patterns from the project's own configuration, never on user input, and it isn't part of the app. A denial of service on a developer's own build is a low risk. Holding the app would stop all app work for an unknown time.
+- **Follow-up:** Remove the exception when `braces` releases a fix. Dependabot alerts will show it.
