@@ -19,14 +19,14 @@ Accounts, transactions, transfers, categories, budgets, recurring items, savings
 
 ## Technology
 
-| Layer | Choice |
-| --- | --- |
-| App (iOS, Android, web) | [Expo](https://expo.dev) / React Native, TypeScript, Expo Router |
-| On-device database | SQLite (encrypted on mobile) |
-| Sync | [PowerSync](https://www.powersync.com) |
-| Backend | [Supabase](https://supabase.com): Postgres, Auth, Row Level Security |
-| Web hosting | Cloudflare Workers (static assets) |
-| Monorepo | pnpm workspaces + Turborepo |
+| Layer                   | Choice                                                               |
+| ----------------------- | -------------------------------------------------------------------- |
+| App (iOS, Android, web) | [Expo](https://expo.dev) / React Native, TypeScript, Expo Router     |
+| On-device database      | SQLite (encrypted on mobile)                                         |
+| Sync                    | [PowerSync](https://www.powersync.com)                               |
+| Backend                 | [Supabase](https://supabase.com): Postgres, Auth, Row Level Security |
+| Web hosting             | Cloudflare Workers (static assets)                                   |
+| Monorepo                | pnpm workspaces + Turborepo                                          |
 
 ## Roadmap
 

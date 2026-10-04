@@ -4,12 +4,12 @@ Thanks for your interest! This project is **pre-alpha**: the architecture and fo
 
 ## How to help today
 
-| You want to… | Do this |
-| --- | --- |
-| Report a bug | Open an issue with the **Bug report** form. |
-| Suggest a feature | Start a thread in [Discussions → Ideas](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/ideas). Once it's well defined, open a **Feature request**. |
-| Ask a question | Use [Discussions → Q&A](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/q-a). |
-| Report a vulnerability | Follow [SECURITY.md](SECURITY.md). Please never use a public issue. |
+| You want to…           | Do this                                                                                                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Report a bug           | Open an issue with the **Bug report** form.                                                                                                                               |
+| Suggest a feature      | Start a thread in [Discussions → Ideas](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/ideas). Once it's well defined, open a **Feature request**. |
+| Ask a question         | Use [Discussions → Q&A](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/q-a).                                                                       |
+| Report a vulnerability | Follow [SECURITY.md](SECURITY.md). Please never use a public issue.                                                                                                       |
 
 **Code contributions** open once the foundation (the walking skeleton) is in place. Until then, pull requests from outside the project may be closed without review, because the core design is still moving. That isn't a judgment of your work.
 
@@ -34,6 +34,7 @@ Exact setup commands will be added here with the monorepo tooling.
   - `docs: explain the money representation`
 
   Scopes: `app`, `core`, `data`, `ui`, `db`, `sync`, `ci`, `docs`, `deps`.
+
 - **Checks must pass:** every PR runs linting, type checks, tests and security scans.
 - **Fill in the PR template:** what and why, how you tested (exact commands and results), risk and rollback, and deploy notes.
 
