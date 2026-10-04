@@ -25,7 +25,7 @@ as $$
   join pg_namespace n on n.oid = p.pronamespace
   where n.nspname in ('private', 'audit')
     and has_function_privilege(role_name, p.oid, 'execute')
-    and (role_name <> 'authenticated' or p.oid::regprocedure::text <> all (array[]::text[]))
+    and (role_name <> 'authenticated' or p.oid::regprocedure::text <> all (array['private.has_ledger_role(uuid,text[])']))
 $$;
 
 -- Table privileges clients must never hold (SEC1, DATA6). TRUNCATE isn't
