@@ -1,0 +1,68 @@
+name: Bug report
+description: Something doesn't work as expected
+title: "bug: "
+labels: ["type: bug", "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug.
+
+        - **Security issues must not be reported here.** Use [private vulnerability reporting](https://github.com/BimsaraGamage/spend-tracker/security/advisories/new) instead.
+        - **Never include real financial data**, account numbers or personal information, including in screenshots and logs.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: A clear description of the bug.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect to happen?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Go to …
+        2. Tap …
+        3. See …
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Where does it happen?
+      multiple: true
+      options:
+        - Android app
+        - iOS app
+        - Web (mobile browser)
+        - Web (desktop browser)
+        - Self-hosted backend
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The app version (Settings → About), or a commit SHA if you built it yourself.
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs
+      description: Remove personal and financial data before pasting.
+      render: shell
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I searched existing issues and didn't find a duplicate.
+          required: true
+        - label: I removed all personal and financial data from this report.
+          required: true

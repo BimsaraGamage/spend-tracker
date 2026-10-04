@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ask a question
+    url: https://github.com/BimsaraGamage/spend-tracker/discussions/categories/q-a
+    about: Questions about using or developing spend-tracker.
+  - name: Discuss an idea
+    url: https://github.com/BimsaraGamage/spend-tracker/discussions/categories/ideas
+    about: Explore an idea before it becomes a feature request.
+  - name: Report a security vulnerability
+    url: https://github.com/BimsaraGamage/spend-tracker/security/advisories/new
+    about: Please report vulnerabilities privately, never in a public issue.

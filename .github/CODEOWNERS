@@ -1,0 +1,11 @@
+# Default owner for everything in the repository.
+* @BimsaraGamage
+
+# Security-sensitive areas. Listed explicitly so ownership stays deliberate
+# when more maintainers join.
+/supabase/                     @BimsaraGamage
+/powersync/                    @BimsaraGamage
+/.github/                      @BimsaraGamage
+/docs/engineering-standards.md @BimsaraGamage
+/SECURITY.md                   @BimsaraGamage
+/LICENSE                       @BimsaraGamage

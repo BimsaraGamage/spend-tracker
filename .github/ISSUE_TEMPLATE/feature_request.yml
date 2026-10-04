@@ -1,0 +1,42 @@
+name: Feature request
+description: Propose a well-defined improvement
+title: "feat: "
+labels: ["type: feature", "status: needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For open-ended ideas, start a thread in [Discussions → Ideas](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/ideas) first. Open a request here once the problem and the expected behaviour are clear.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What are you trying to do, and what gets in the way? Describe the problem, not just a solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: How should it work from the user's point of view?
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platforms
+      multiple: true
+      options:
+        - Android app
+        - iOS app
+        - Web
+        - Backend / self-hosting
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Mock-ups, examples from other apps, or edge cases (for example offline use, multiple currencies or shared ledgers).
