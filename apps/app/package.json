@@ -1,0 +1,63 @@
+{
+  "name": "@spend-tracker/app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The Spend Tracker app for iOS, Android and the web.",
+  "license": "Apache-2.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "build": "expo export --platform web",
+    "lint": "eslint --max-warnings=0 .",
+    "typecheck": "tsc --noEmit",
+    "test": "jest --coverage"
+  },
+  "dependencies": {
+    "expo": "~57.0.26",
+    "expo-constants": "~57.0.20",
+    "expo-linking": "~57.0.11",
+    "expo-localization": "~57.0.2",
+    "expo-router": "~57.0.24",
+    "expo-status-bar": "~57.0.1",
+    "i18next": "26.4.2",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "react-i18next": "17.0.15",
+    "react-native": "0.86.3",
+    "react-native-gesture-handler": "~2.32.0",
+    "react-native-reanimated": "4.5.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "~4.26.0",
+    "react-native-web": "~0.21.0",
+    "react-native-worklets": "0.10.1"
+  },
+  "devDependencies": {
+    "@jest/globals": "29.7.0",
+    "@react-native/jest-preset": "0.86.3",
+    "@react-native/metro-config": "0.86.3",
+    "@spend-tracker/config": "workspace:*",
+    "@testing-library/react-native": "14.0.1",
+    "@types/jest": "29.5.14",
+    "@types/react": "~19.2.2",
+    "eslint": "catalog:",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "jest": "29.7.0",
+    "jest-expo": "~57.0.5",
+    "test-renderer": "1.2.0",
+    "typescript": "catalog:"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "transformIgnorePatterns": [
+      "node_modules/(?!(\\.pnpm|(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|expo-modules-core|react-navigation|@react-navigation/.*))"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.d.ts",
+      "!src/app/**"
+    ]
+  }
+}

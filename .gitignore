@@ -51,3 +51,7 @@ CLAUDE.local.md
 # Personal git-hook overrides (see CONTRIBUTING.md)
 lefthook-local.yml
 .lefthook-local.rc
+
+# Expo
+expo-env.d.ts
+.metro-health-check*
