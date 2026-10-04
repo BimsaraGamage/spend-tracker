@@ -18,3 +18,4 @@ export {
   zeroMoney,
 } from "./money/money";
 export { parseMoney, toDecimalString } from "./money/decimal";
+export { formatMoney } from "./money/format";
