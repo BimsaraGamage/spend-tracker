@@ -18,6 +18,7 @@
     "@spend-tracker/config": "workspace:*",
     "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
+    "fast-check": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
   }
