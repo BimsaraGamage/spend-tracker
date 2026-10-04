@@ -15,10 +15,11 @@ revoke all on schema audit from public, anon, authenticated;
 -- signed-in users need USAGE on the schema. EXECUTE is granted per function.
 grant usage on schema private to authenticated;
 
--- Postgres lets everyone (PUBLIC) execute new functions by default. Turn that
--- off for both schemas, so every grant is explicit.
-alter default privileges in schema private revoke execute on functions from public;
-alter default privileges in schema audit revoke execute on functions from public;
+-- Postgres lets everyone (PUBLIC) execute new functions, and a per-schema
+-- ALTER DEFAULT PRIVILEGES can't revoke that global default. So every function
+-- in these schemas revokes PUBLIC's EXECUTE explicitly, and a pgTAP guard
+-- (supabase/tests/database/000_schema_security.test.sql) fails the build if
+-- one is forgotten.
 
 -- Keeps updated_at current on every update (SYNC1, ADR-0007).
 create function private.set_updated_at()
@@ -31,3 +32,5 @@ begin
   return new;
 end;
 $$;
+
+revoke execute on function private.set_updated_at() from public;
