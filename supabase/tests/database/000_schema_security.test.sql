@@ -1,7 +1,7 @@
 -- Guards that apply to the whole database, not to one feature.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(8);
+select plan(10);
 
 -- SEC1: every table the API can reach must have row level security.
 create function pg_temp.tables_without_rls()
@@ -28,6 +28,25 @@ as $$
     and (role_name <> 'authenticated' or p.oid::regprocedure::text <> all (array[]::text[]))
 $$;
 
+-- Table privileges clients must never hold (SEC1, DATA6). TRUNCATE isn't
+-- subject to RLS, and deletion is soft, so signed-in users get neither.
+create function pg_temp.forbidden_client_privileges()
+returns bigint
+language sql
+as $$
+  select count(*)
+  from pg_class c
+  join pg_namespace n on n.oid = c.relnamespace
+  cross join (values
+    ('anon', 'select'), ('anon', 'insert'), ('anon', 'update'), ('anon', 'delete'),
+    ('anon', 'truncate'), ('anon', 'references'), ('anon', 'trigger'),
+    ('authenticated', 'delete'), ('authenticated', 'truncate'),
+    ('authenticated', 'references'), ('authenticated', 'trigger')
+  ) as forbidden (role_name, privilege)
+  where n.nspname = 'public' and c.relkind in ('r', 'p')
+    and has_table_privilege(forbidden.role_name, c.oid, forbidden.privilege)
+$$;
+
 select is(pg_temp.tables_without_rls(), 0::bigint,
   'every table in the public schema has row level security enabled (SEC1)');
 select is(pg_temp.callable_internal_functions('anon'), 0::bigint,
@@ -35,11 +54,19 @@ select is(pg_temp.callable_internal_functions('anon'), 0::bigint,
 select is(pg_temp.callable_internal_functions('authenticated'), 0::bigint,
   'signed-in users can execute only allow-listed internal functions');
 
+select is(pg_temp.forbidden_client_privileges(), 0::bigint,
+  'clients hold no forbidden table privileges (no anonymous access, no DELETE or TRUNCATE)');
+
 -- Each guard must be able to fail.
 create table public.rls_probe (id int);
 select is(pg_temp.tables_without_rls(), 1::bigint,
   'the RLS guard detects a table without row level security');
 drop table public.rls_probe;
+
+create table public.privilege_probe (id int);
+select ok(pg_temp.forbidden_client_privileges() > 0,
+  'the privilege guard detects a table that keeps the default grants');
+drop table public.privilege_probe;
 
 create function private.execute_probe() returns int language sql as 'select 1';
 select is(pg_temp.callable_internal_functions('authenticated'), 1::bigint,
