@@ -1,6 +1,6 @@
 # Initial requirements
 
-Status: **draft v0.1** (2026-10-04). These are the foundation requirements from the maintainer's original brief, plus a few proposed by the assistant. The functional requirements (FR) will be added as the maintainer writes them.
+Status: **draft v0.2** (2026-10-04). These are the foundation requirements and the maintainer's initial cost-planning brief, plus explicitly marked proposals. Requested capabilities are requirements; unresolved calculation rules remain proposed. A requirement recorded here does not mean the feature is implemented.
 
 Requirement IDs are stable: never renumber or reuse them. Code, tests, pull requests and reviews cite them, for example `Implements FR-SK-3` or `Verifies NFR-SEC-1`.
 
@@ -62,13 +62,24 @@ Requirement IDs are stable: never renumber or reuse them. Code, tests, pull requ
 
 ## Functional requirements
 
-To be supplied by the maintainer. The walking skeleton needs only these three:
+The walking skeleton needs these three:
 
 | ID      | Requirement                                                                                                   | Source          |
 | ------- | ------------------------------------------------------------------------------------------------------------- | --------------- |
 | FR-SK-1 | A user can sign in with an email one-time code, or with an email and password.                                | decision (D-29) |
 | FR-SK-2 | On first run, the user chooses a base currency. This creates a personal ledger with a "Cash" account.         | decision (D-29) |
 | FR-SK-3 | The user can add and list transactions while offline; they sync to the user's other devices when back online. | decision (D-29) |
+
+### Monthly cost planning and spending
+
+The [cost-planning specification](cost-planning.md) defines the initial product requirements, acceptance scenarios, traceability to the brief, and open calculation decisions. It uses the same stable IDs and source convention as this document:
+
+- **FR-PLAN-1–2:** monthly estimated costs and totals by cost type;
+- **FR-TAG-1–5:** multiple tags on costs and cost types, tag reports, Untagged and combined tag filters;
+- **FR-ACT-1–3:** actual costs, creating a cost type during entry, and estimated-versus-actual totals;
+- **FR-FORECAST-1–2:** estimated exhaustion time and a projection graph accounting for fixed costs.
+
+These extend the product scope after the walking skeleton; they do not change its completion criteria. Follow the linked specification before implementing them, especially its proposed rules for overlapping tags and forecasts.
 
 ## Glossary
 

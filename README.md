@@ -15,7 +15,9 @@ A local-first, privacy-respecting personal finance tracker for iOS, Android and 
 
 ## Planned scope
 
-Accounts, transactions, transfers, categories, budgets, recurring items, savings goals and shared ledgers (for example, a household budget), delivered incrementally. The detailed functional requirements are being written now.
+The initial product scope is monthly cost planning, estimated-versus-actual spending by cost type and tags, and exhaustion forecasts that account for fixed costs. See the [cost-planning requirements and acceptance scenarios](docs/requirements/cost-planning.md); these features are specified, not yet implemented.
+
+The broader scope includes accounts, transactions, transfers, categories, budgets, recurring items, savings goals and shared ledgers (for example, a household budget), delivered incrementally. The [requirements index](docs/requirements/initial-requirements.md) distinguishes requested capabilities from proposals.
 
 ## Technology
 
