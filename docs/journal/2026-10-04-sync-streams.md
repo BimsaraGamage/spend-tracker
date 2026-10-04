@@ -46,6 +46,8 @@
 
 ### D-136 · Local sessions use the development secret, not signing keys (autopilot)
 
+> **Superseded by [D-141](2026-10-04-sync-tests.md#d-141--local-sessions-are-verified-with-auths-published-keys-autopilot):** the local stack already signs sessions with an asymmetric key.
+
 - **Options:**
   - ★ The local Supabase stack's HS256 development secret, read from `supabase status`.
   - Asymmetric ES256 signing keys locally, like hosted projects. Every contributor and every CI run would have to generate a key file before `supabase start`, which fails without it.

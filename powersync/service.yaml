@@ -25,10 +25,11 @@ sync_config:
   path: sync-config.yaml
 
 client_auth:
-  # The local Supabase stack signs sessions with its HS256 development secret.
-  # Hosted projects use asymmetric keys, which PowerSync Cloud verifies itself.
-  supabase: true
-  supabase_jwt_secret: !env PS_SUPABASE_JWT_SECRET
+  # The local Supabase stack signs sessions with an asymmetric (ES256)
+  # development key, as hosted projects sign theirs. Auth publishes the public
+  # keys at this address on the stack's Docker network.
+  jwks_uri: http://auth:9999/.well-known/jwks.json
+  audience: [authenticated]
 
 api:
   # Protects the admin API, which the health check in check.sh calls.

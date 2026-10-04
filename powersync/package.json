@@ -1,0 +1,21 @@
+{
+  "name": "@spend-tracker/sync",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Sync Streams, the local PowerSync service, and the tests that prove what each user receives.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "lint": "eslint --max-warnings=0 .",
+    "typecheck": "tsc --noEmit",
+    "test:integration": "vitest run"
+  },
+  "devDependencies": {
+    "@spend-tracker/config": "workspace:*",
+    "@spend-tracker/core": "workspace:*",
+    "@types/node": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

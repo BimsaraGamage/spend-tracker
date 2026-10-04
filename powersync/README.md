@@ -9,6 +9,7 @@ PowerSync copies each user's ledgers from Postgres to their devices ([ADR-0004](
 | `compose.yaml`           | The local service and its storage, as containers                                                |
 | `enable-replication.sql` | Lets the database role `powersync_role` sign in, locally                                        |
 | `up.sh`, `check.sh`      | Start the local service; check that it's healthy                                                |
+| `tests/`                 | Integration tests: what each user's devices receive                                             |
 
 Staging and production run on PowerSync Cloud. Connecting them is a manual step for the maintainer: see the [runbook](../docs/operations/sync-service.md).
 
@@ -20,7 +21,10 @@ You need Docker and the [Supabase CLI](https://supabase.com/docs/guides/local-de
 supabase start
 ./powersync/up.sh     # starts the service at http://127.0.0.1:8080
 ./powersync/check.sh  # checks that it replicates without errors
+pnpm --filter @spend-tracker/sync test:integration
 ```
+
+The tests sign users in, write through the REST API as those users, and read through the sync endpoint, as a new device would. They check that each user receives exactly their own ledgers, only the listed columns, and that soft-deleted rows leave their devices.
 
 Each start rebuilds the service's storage from the database, and writes fresh secrets to `powersync/.env`, which git ignores.
 
@@ -30,4 +34,5 @@ To stop it: `docker compose --file powersync/compose.yaml down`.
 
 1. Edit `sync-config.yaml`. Keep it in step with the RLS read policies in `supabase/migrations`.
 2. To sync a new table, add it to the `powersync` publication and grant `powersync_role` `SELECT` on it, in a migration.
-3. Restart the service with `./powersync/up.sh`, then run `./powersync/check.sh`. CI runs the same check on every pull request.
+3. Add or update a test in `tests/`.
+4. Restart the service with `./powersync/up.sh`, then run the check and the tests. CI runs both on every pull request.

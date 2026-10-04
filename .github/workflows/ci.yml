@@ -134,22 +134,48 @@ jobs:
       - name: Lint the sync service scripts
         run: shellcheck powersync/*.sh
 
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: .nvmrc
+          package-manager-cache: false
+
+      - name: Enable pnpm through Corepack
+        run: corepack enable pnpm
+
+      - name: Locate the pnpm store
+        id: pnpm-store
+        run: echo "path=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache the pnpm store
+        uses: actions/cache@caa296126883cff596d87d8935842f9db880ef25 # v5.1.0
+        with:
+          path: ${{ steps.pnpm-store.outputs.path }}
+          key: pnpm-store-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml') }}
+          restore-keys: pnpm-store-${{ runner.os }}-
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
       - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
         with:
           version: 2.119.0
 
-      # The sync service replicates from the database, and verifies sessions
-      # with Auth's signing secret.
-      - name: Start the local database
+      # The sync service replicates from the database and verifies sessions
+      # with Auth's signing secret. The tests also sign users in through the
+      # API gateway (kong) and write through the REST API (postgrest).
+      - name: Start the local stack
         run: >-
           supabase start
-          -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+          -x realtime,storage-api,imgproxy,mailpit,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
 
       - name: Start the sync service
         run: ./powersync/up.sh
 
       - name: Check that it replicates without errors
         run: ./powersync/check.sh
+
+      - name: Test what each user's devices receive
+        run: pnpm --filter @spend-tracker/sync test:integration
 
       - name: Show the sync service logs
         if: failure()
