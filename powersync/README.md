@@ -9,7 +9,7 @@ PowerSync copies each user's ledgers from Postgres to their devices ([ADR-0004](
 | `compose.yaml`           | The local service and its storage, as containers                                                |
 | `enable-replication.sql` | Lets the database role `powersync_role` sign in, locally                                        |
 | `up.sh`, `check.sh`      | Start the local service; check that it's healthy                                                |
-| `tests/`                 | Integration tests: what each user's devices receive                                             |
+| `tests/`                 | Integration tests: what each user's devices receive and send                                    |
 
 Staging and production run on PowerSync Cloud. Connecting them is a manual step for the maintainer: see the [runbook](../docs/operations/sync-service.md).
 
@@ -24,7 +24,7 @@ supabase start
 pnpm --filter @spend-tracker/sync test:integration
 ```
 
-The tests sign users in, write through the REST API as those users, and read through the sync endpoint, as a new device would. They check that each user receives exactly their own ledgers, only the listed columns, and that soft-deleted rows leave their devices.
+The tests sign users in, write through the REST API as those users, and read through the sync endpoint, as a new device would. They check that each user receives exactly their own ledgers, with exactly the columns of the device schema in `packages/data`, and that soft-deleted rows leave their devices. They also send device changes through the app's upload connector, and check what happens to accepted, retried and refused changes.
 
 Each start rebuilds the service's storage from the database, and writes fresh secrets to `powersync/.env`, which git ignores.
 

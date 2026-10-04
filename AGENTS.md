@@ -44,6 +44,7 @@ Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
 | ----------------- | --------------------------------------------------------------- |
 | `packages/config` | Shared TypeScript and ESLint configuration                      |
 | `packages/core`   | Pure domain logic: money, currencies, IDs, dates                |
+| `packages/data`   | Device database schema, and the sync and upload connector       |
 | `docs/`           | Requirements, standards, the review guide, the decision journal |
 | `.github/`        | CI and security workflows, issue and PR templates, code owners  |
 | `supabase/`       | Database migrations, RLS policies and pgTAP tests               |
@@ -52,7 +53,6 @@ Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
 Planned, not yet created:
 
 - `apps/app`: the Expo app;
-- `packages/data`: local database, queries and the sync connector;
 - `packages/ui`: design tokens and components.
 
 Dependencies point one way: `apps → packages/data → packages/core` ([ARC1](docs/engineering-standards.md#3-architecture-arc)).
@@ -93,7 +93,7 @@ Every behaviour change ships with tests at the lowest layer that proves it ([TES
 - unit tests for `packages/core`;
 - component tests for the app;
 - pgTAP tests for RLS, constraints and SQL functions;
-- integration tests in `powersync/tests` for what each user's devices receive;
+- integration tests in `powersync/tests` for what each user's devices receive and send;
 - Playwright (web) and Maestro (Android) tests for user journeys.
 
 CI runs formatting, lint, type checks and tests on every pull request, alongside CodeQL, dependency review and workflow security scans.

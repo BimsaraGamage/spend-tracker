@@ -5,6 +5,7 @@
  * Every test creates its own users, so the tests don't depend on each other.
  */
 import { uuidv7 } from "@spend-tracker/core";
+import { AppSchema } from "@spend-tracker/data";
 import { describe, expect, test, vi } from "vitest";
 
 import {
@@ -127,26 +128,28 @@ describe("Sync Streams", () => {
     expectOnly(await syncAs(bob), bobsLedger, bob);
   });
 
-  test("devices receive the listed columns, in the types the app expects, and never deleted_at", async () => {
+  test("devices receive exactly the columns of the device schema, in the types the app expects", async () => {
     const alice = await createUser();
     const ledger = await createLedger(alice);
 
     await syncUntil(alice, (synced) => {
-      const transaction =
-        synced.get("transactions")?.get(ledger.transactionId) ?? {};
-      expect(Object.keys(transaction).sort()).toEqual([
-        "account_id",
-        "amount_minor",
-        "created_at",
-        "created_by",
-        "currency",
-        "description",
-        "id",
-        "ledger_id",
-        "occurred_on",
-        "updated_at",
-      ]);
-      expect(transaction).toMatchObject({
+      // The device schema in packages/data is the contract: no column more,
+      // none less, and never deleted_at.
+      for (const { name, columns, localOnly } of AppSchema.tables) {
+        if (localOnly) {
+          continue;
+        }
+        const rows = [...(synced.get(name)?.values() ?? [])];
+        expect(rows.length, name).toBeGreaterThan(0);
+        for (const row of rows) {
+          expect(Object.keys(row).sort(), name).toEqual(
+            ["id", ...columns.map((column) => column.name)].sort(),
+          );
+        }
+      }
+      expect(
+        synced.get("transactions")?.get(ledger.transactionId),
+      ).toMatchObject({
         ledger_id: ledger.ledgerId,
         account_id: ledger.accountId,
         // An integer number of minor units, never text or a fraction (DATA1).
@@ -157,11 +160,6 @@ describe("Sync Streams", () => {
         description: "Groceries",
         created_by: alice.id,
       });
-      for (const rows of synced.values()) {
-        for (const row of rows.values()) {
-          expect(row).not.toHaveProperty("deleted_at");
-        }
-      }
     });
   });
 

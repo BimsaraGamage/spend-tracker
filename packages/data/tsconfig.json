@@ -1,0 +1,9 @@
+{
+  "extends": "@spend-tracker/config/tsconfig/base.json",
+  "compilerOptions": {
+    // fetch, Response and AbortController, which every platform the app runs
+    // on provides.
+    "lib": ["ES2023", "DOM"]
+  },
+  "include": ["src", "vitest.config.ts"]
+}

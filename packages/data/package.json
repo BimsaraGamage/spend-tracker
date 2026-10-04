@@ -1,22 +1,28 @@
 {
-  "name": "@spend-tracker/sync",
+  "name": "@spend-tracker/data",
   "version": "0.0.0",
   "private": true,
-  "description": "Sync Streams, the local PowerSync service, and the tests that prove what each user's devices receive and send.",
+  "description": "The device database schema and the connector that syncs it with Supabase through PowerSync.",
   "license": "Apache-2.0",
   "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
   "scripts": {
     "lint": "eslint --max-warnings=0 .",
     "typecheck": "tsc --noEmit",
-    "test:integration": "vitest run"
+    "test": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "@powersync/common": "^2.3.1",
+    "@supabase/supabase-js": "^2.117.2"
   },
   "devDependencies": {
     "@powersync/common": "catalog:",
     "@spend-tracker/config": "workspace:*",
-    "@spend-tracker/core": "workspace:*",
-    "@spend-tracker/data": "workspace:*",
     "@supabase/supabase-js": "catalog:",
     "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
     "eslint": "catalog:",
     "typescript": "catalog:",
     "vitest": "catalog:"
