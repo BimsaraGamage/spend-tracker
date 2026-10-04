@@ -26,6 +26,13 @@ pnpm typecheck      # TypeScript in every package
 pnpm test           # tests in every package
 ```
 
+Database (needs Docker; CI always runs it), with the Supabase CLI pinned in `.github/workflows/ci.yml`:
+
+```sh
+supabase start   # local Postgres and Auth; applies supabase/migrations
+supabase test db # pgTAP tests in supabase/tests/database
+```
+
 Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
 
 ## Layout
@@ -35,6 +42,7 @@ Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
 | `packages/config` | Shared TypeScript and ESLint configuration                      |
 | `docs/`           | Requirements, standards, the review guide, the decision journal |
 | `.github/`        | CI and security workflows, issue and PR templates, code owners  |
+| `supabase/`       | Database migrations, RLS policies and pgTAP tests               |
 
 Planned, not yet created:
 
@@ -42,7 +50,6 @@ Planned, not yet created:
 - `packages/core`: pure domain logic;
 - `packages/data`: local database, queries and the sync connector;
 - `packages/ui`: design tokens and components;
-- `supabase/`: migrations, RLS and pgTAP tests;
 - `powersync/`: the sync configuration.
 
 Dependencies point one way: `apps → packages/data → packages/core` ([ARC1](docs/engineering-standards.md#3-architecture-arc)).
