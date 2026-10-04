@@ -224,9 +224,12 @@ Version 1.0, 2026-10-04. These rules apply to every change in this repository, w
   - Stage files by explicit path.
   - No AI attribution lines.
 - **GIT3: PR titles follow Conventional Commits** (CI enforces this), and PRs are squash-merged.
-- **GIT4: Never rewrite history that others may have pulled,** such as `main` or shared branches.
-  - Tidy commits with fixup commits and autosquash only before pushing.
-  - Update a stacked branch by merging its base into it.
+- **GIT4: Keep history linear and readable, and never rewrite shared history.**
+  - Never rewrite `main`, or a branch someone else works on.
+  - Update your own PR branch by **rebasing** it onto its base, never by merging the base into it. Push with `--force-with-lease=<branch>:<expected-sha>`, so you never overwrite work you haven't seen.
+  - Fold a fix into the commit it belongs to: `git commit --fixup=<sha>`, then `git rebase --autosquash <base>`.
+  - **Stacked PRs** (GitHub stacks) merge bottom-up. GitHub then rebases the PRs above. `gh pr merge` refuses stacked PRs; use the asynchronous merge API (`PUT /repos/{owner}/{repo}/pulls/{n}/merge-async`, without bypassing rules).
+  - Delete branches once their PR is merged.
 - **GIT5: Never commit generated or personal files:** build output, coverage, `.env*`, personal configs, `lefthook-local.yml`.
 
 ## 11. Maintaining this standard

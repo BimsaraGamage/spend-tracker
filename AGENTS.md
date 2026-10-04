@@ -66,6 +66,10 @@ Several tools here are newer than most training data. Before changing a tool's c
 ## How to work
 
 - **Branches** start from the latest remote base (`git fetch`, then `git switch -c <branch> origin/<base>`). When a change depends on an open PR, stack the new branch on that PR's branch.
+- **Keep branch history linear** ([GIT4](docs/engineering-standards.md#10-git-and-pull-requests-git)):
+  - Update a PR branch by rebasing it onto its base, never by merging the base in, then push with `--force-with-lease=<branch>:<expected-sha>`.
+  - Stacked PRs must be merged through `PUT /repos/{owner}/{repo}/pulls/{n}/merge-async`, without bypassing rules. Merging the top PR lands every open PR below it.
+  - Delete local branches whose PR is merged.
 - **Commits** are small, one purpose each, with a Conventional Commit subject and a body that explains why. Stage files by explicit path, never with `git add -A`. No AI attribution lines.
 - **Pull requests** use the template, with Conventional Commit titles, and are squash-merged.
 - **Decisions:** every decision prompt, and every decision taken without one, gets an entry in `docs/journal/` in the PR that acts on it ([WF6](docs/engineering-standards.md#1-workflow-wf)). Continue the `D-<number>` sequence from the newest journal file.
