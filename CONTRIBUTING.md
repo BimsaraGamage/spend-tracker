@@ -4,12 +4,12 @@ Thanks for your interest! This project is **pre-alpha**: the architecture and fo
 
 ## How to help today
 
-| You want to… | Do this |
-| --- | --- |
-| Report a bug | Open an issue with the **Bug report** form. |
-| Suggest a feature | Start a thread in [Discussions → Ideas](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/ideas). Once it's well defined, open a **Feature request**. |
-| Ask a question | Use [Discussions → Q&A](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/q-a). |
-| Report a vulnerability | Follow [SECURITY.md](SECURITY.md). Please never use a public issue. |
+| You want to…           | Do this                                                                                                                                                                   |
+| ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Report a bug           | Open an issue with the **Bug report** form.                                                                                                                               |
+| Suggest a feature      | Start a thread in [Discussions → Ideas](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/ideas). Once it's well defined, open a **Feature request**. |
+| Ask a question         | Use [Discussions → Q&A](https://github.com/BimsaraGamage/spend-tracker/discussions/categories/q-a).                                                                       |
+| Report a vulnerability | Follow [SECURITY.md](SECURITY.md). Please never use a public issue.                                                                                                       |
 
 **Code contributions** open once the foundation (the walking skeleton) is in place. Until then, pull requests from outside the project may be closed without review, because the core design is still moving. That isn't a judgment of your work.
 
@@ -19,10 +19,43 @@ Never include real financial data, account numbers or personal information in is
 
 Prerequisites:
 
-- Node.js 24 LTS. The version is pinned in [`.nvmrc`](.nvmrc), so `nvm use` picks it up.
-- Docker, for the local database and sync stack.
+- Node.js 24 LTS. The version is pinned in [`.nvmrc`](.nvmrc), so `nvm install && nvm use` picks it up.
+- Docker, which the local database and sync stack will need.
 
-Exact setup commands will be added here with the monorepo tooling.
+```sh
+corepack enable pnpm   # use the exact pnpm version pinned in package.json
+pnpm install           # install dependencies and the git hooks
+```
+
+| Command             | What it does                               |
+| ------------------- | ------------------------------------------ |
+| `pnpm lint`         | Type-aware ESLint in every package         |
+| `pnpm typecheck`    | TypeScript checks in every package         |
+| `pnpm test`         | Unit tests in every package                |
+| `pnpm format`       | Format all files with Prettier             |
+| `pnpm format:check` | Check formatting without changing anything |
+
+**Git hooks.** Before each commit, the formatting of staged files is checked. Before each push, packages changed since `origin/main` are linted and type-checked. CI runs every check again, so in an emergency you can skip the hooks with `--no-verify`.
+
+Hooks run in the environment that started git, which may not be your terminal: an editor's Git panel, or a default Node version other than 24. If a hook reports `pnpm: not found` and you use nvm, create two untracked (gitignored) files in the repository root:
+
+```sh
+# .lefthook-local.rc: load nvm and switch to the Node version in .nvmrc
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm use --silent >/dev/null 2>&1 || true
+```
+
+```yaml
+# lefthook-local.yml (the path must be absolute)
+rc: /absolute/path/to/spend-tracker/.lefthook-local.rc
+```
+
+Then reinstall the hooks, because the rc file is built into them: `pnpm exec lefthook install -f`.
+
+**Supply-chain rules.** pnpm refuses package versions published less than 3 days ago. It also blocks dependency install scripts unless they are listed under `allowBuilds` in `pnpm-workspace.yaml`. If an install fails because a version is too new, wait or choose an older version; don't disable the check.
+
+**Telemetry.** Turborepo sends anonymous usage data by default. Opt out with `pnpm exec turbo telemetry disable`, or set `TURBO_TELEMETRY_DISABLED=1`. CI always disables it.
 
 ## Workflow
 
@@ -34,6 +67,7 @@ Exact setup commands will be added here with the monorepo tooling.
   - `docs: explain the money representation`
 
   Scopes: `app`, `core`, `data`, `ui`, `db`, `sync`, `ci`, `docs`, `deps`.
+
 - **Checks must pass:** every PR runs linting, type checks, tests and security scans.
 - **Fill in the PR template:** what and why, how you tested (exact commands and results), risk and rollback, and deploy notes.
 

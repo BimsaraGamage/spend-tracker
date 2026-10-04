@@ -47,3 +47,7 @@ Thumbs.db
 # Personal Claude Code settings
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Personal git-hook overrides (see CONTRIBUTING.md)
+lefthook-local.yml
+.lefthook-local.rc
