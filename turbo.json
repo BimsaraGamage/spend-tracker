@@ -1,6 +1,7 @@
 {
-  "$schema": "https://turborepo.com/schema.json",
+  "$schema": "./node_modules/turbo/schema.json",
   "ui": "stream",
+  "agentGuidance": false,
   "globalDependencies": [".nvmrc", "pnpm-workspace.yaml"],
   "tasks": {
     "build": {
