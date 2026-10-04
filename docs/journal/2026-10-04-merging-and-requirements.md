@@ -33,3 +33,8 @@
   - Performance targets and accessibility are marked "proposed".
   - Functional requirements stay empty apart from the three walking-skeleton ones.
 - **Why:** The Source column keeps traceability, so it's always clear who asked for what. A requirement the maintainer never confirmed shouldn't silently become a commitment.
+
+### D-84 · Direction: switch to guided mode
+
+- **Direction (maintainer):** `/guided`. Switch the collaboration mode from autopilot to guided.
+- **Action:** From now on, every important decision, one-way door and low-confidence moment is asked as a prompt. Each prompt states what, why, where the assistant is struggling and why, and marks a recommended option. Takeaways follow each PR or milestone. The safety floor and this journal stay as they are.
