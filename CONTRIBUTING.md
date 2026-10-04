@@ -41,6 +41,8 @@ To work on the app, start Expo's development server and open the app in a browse
 pnpm --filter @spend-tracker/app web
 ```
 
+The app reads its settings from `apps/app/.env.local`, which git ignores. Copy [`apps/app/.env.example`](apps/app/.env.example) there and fill it in. Without valid settings, the app shows what's missing instead of starting.
+
 **Git hooks.** Before each commit, the formatting of staged files is checked. Before each push, packages changed since `origin/main` are linted and type-checked. CI runs every check again, so in an emergency you can skip the hooks with `--no-verify`.
 
 Hooks run in the environment that started git, which may not be your terminal: an editor's Git panel, or a default Node version other than 24. If a hook reports `pnpm: not found` and you use nvm, create two untracked (gitignored) files in the repository root:
