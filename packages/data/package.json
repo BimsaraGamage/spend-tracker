@@ -1,0 +1,30 @@
+{
+  "name": "@spend-tracker/data",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The device database schema and the connector that syncs it with Supabase through PowerSync.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "lint": "eslint --max-warnings=0 .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run --coverage"
+  },
+  "peerDependencies": {
+    "@powersync/common": "^2.3.1",
+    "@supabase/supabase-js": "^2.117.2"
+  },
+  "devDependencies": {
+    "@powersync/common": "catalog:",
+    "@spend-tracker/config": "workspace:*",
+    "@supabase/supabase-js": "catalog:",
+    "@types/node": "catalog:",
+    "@vitest/coverage-v8": "catalog:",
+    "eslint": "catalog:",
+    "typescript": "catalog:",
+    "vitest": "catalog:"
+  }
+}

@@ -26,6 +26,8 @@ allowBuilds:
 # "catalog:" so the whole workspace always uses the same version.
 catalog:
   "@eslint/js": 9.39.5
+  "@powersync/common": 2.3.1
+  "@supabase/supabase-js": 2.117.2
   "@vitest/coverage-v8": 5.0.3
   "@types/node": 24.19.0
   eslint: 9.39.5
