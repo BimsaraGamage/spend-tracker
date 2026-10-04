@@ -120,12 +120,47 @@ jobs:
       - name: Run the pgTAP tests
         run: supabase test db
 
+  sync:
+    name: Sync service (PowerSync)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Lint the sync service scripts
+        run: shellcheck powersync/*.sh
+
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.119.0
+
+      # The sync service replicates from the database, and verifies sessions
+      # with Auth's signing secret.
+      - name: Start the local database
+        run: >-
+          supabase start
+          -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Start the sync service
+        run: ./powersync/up.sh
+
+      - name: Check that it replicates without errors
+        run: ./powersync/check.sh
+
+      - name: Show the sync service logs
+        if: failure()
+        run: docker compose --file powersync/compose.yaml logs --no-color
+
   # The only check the main-branch ruleset requires. Adding or renaming jobs
   # above never needs a ruleset change; just list them in `needs`.
   required:
     name: required
     if: always()
-    needs: [checks, workflow-security, database]
+    needs: [checks, workflow-security, database, sync]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions: {}
