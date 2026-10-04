@@ -8,7 +8,7 @@
 - **Action:**
   - #1 merged.
   - #3 was updated by merging `main` into it, not by force-pushing a rebase, so no pushed history was rewritten.
-  - #3 and #2 were then reported as "blocked by the base branch policy" (D-81 to D-83).
+  - #3 and #2 were then reported as "blocked by the base branch policy" (D-81, D-82).
 
 ### D-81 · A direct API merge was refused by the assistant's safety check
 
