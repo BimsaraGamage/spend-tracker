@@ -1,0 +1,46 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Dependency updates. See docs/journal/2026-10-04-renovate.md for the reasoning.",
+  "extends": ["config:best-practices", ":semanticCommits"],
+  "timezone": "Asia/Colombo",
+  "schedule": ["before 6am on monday"],
+  "minimumReleaseAge": "3 days",
+  "labels": ["type: dependencies"],
+  "prConcurrentLimit": 5,
+  "major": {
+    "dependencyDashboardApproval": true
+  },
+  "vulnerabilityAlerts": {
+    "labels": ["type: dependencies", "type: security"]
+  },
+  "osvVulnerabilityAlerts": true,
+  "packageRules": [
+    {
+      "description": "One weekly PR for non-major development dependency updates.",
+      "matchDepTypes": ["devDependencies"],
+      "matchUpdateTypes": ["minor", "patch", "pin", "digest"],
+      "groupName": "development dependencies (non-major)"
+    },
+    {
+      "description": "One PR for GitHub Actions updates (digests stay pinned).",
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions"
+    },
+    {
+      "description": "Packages managed by the Expo SDK only move in dedicated SDK upgrade PRs (npx expo install --fix).",
+      "matchPackageNames": [
+        "expo",
+        "expo-*",
+        "@expo/*",
+        "react",
+        "react-dom",
+        "react-native",
+        "react-native-*",
+        "@react-native/*",
+        "jest-expo",
+        "@types/react"
+      ],
+      "enabled": false
+    }
+  ]
+}

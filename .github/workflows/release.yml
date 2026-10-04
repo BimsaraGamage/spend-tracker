@@ -1,0 +1,63 @@
+name: Release
+
+# release-please turns Conventional Commit titles on main into a release PR
+# (version bump + CHANGELOG). Merging that PR creates the tag and the GitHub
+# release.
+#
+# It acts as the release bot GitHub App, not with GITHUB_TOKEN: PRs opened
+# with GITHUB_TOKEN don't trigger CI, so the required check would never run
+# on the release PR. The job stays inactive until the app is configured
+# (docs/operations/release-bot.md).
+on:
+  push:
+    branches: [main]
+
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release-please:
+    name: Release PR and tags
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # The bot's credentials live in the "release" environment, which only
+    # releases them to jobs running on main.
+    environment: release
+    # Every write uses the release bot's short-lived app token.
+    permissions: {}
+    steps:
+      - name: Check that the release bot is configured
+        id: bot
+        env:
+          CLIENT_ID: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          HAS_PRIVATE_KEY: ${{ secrets.RELEASE_BOT_PRIVATE_KEY != '' }}
+        run: |
+          if [ -n "${CLIENT_ID}" ] && [ "${HAS_PRIVATE_KEY}" = "true" ]; then
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::notice title=Release bot not configured::Skipping release-please. See docs/operations/release-bot.md."
+          fi
+
+      - name: Create a release bot token
+        id: token
+        if: steps.bot.outputs.configured == 'true'
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          client-id: ${{ vars.RELEASE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_BOT_PRIVATE_KEY }}
+          # Only what release-please needs: commit the release, open the PR, label it.
+          permission-contents: write
+          permission-pull-requests: write
+          permission-issues: write
+
+      - name: Run release-please
+        if: steps.bot.outputs.configured == 'true'
+        uses: googleapis/release-please-action@45996ed1f6d02564a971a2fa1b5860e934307cf7 # v5.0.0
+        with:
+          token: ${{ steps.token.outputs.token }}
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
