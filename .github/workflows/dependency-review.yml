@@ -23,6 +23,10 @@ jobs:
           # build-time dependencies. Lower severities surface as Dependabot alerts.
           fail-on-severity: high
           fail-on-scopes: runtime, development
+          # Advisories with no fixed version yet, accepted after review. Each
+          # one is explained in docs/operations/dependency-updates.md; remove
+          # it as soon as a fix is released.
+          allow-ghsas: GHSA-vfj7-8cjw-p6xm
           # Only licenses compatible with distributing the app under
           # Apache-2.0, including through app stores. Copyleft licenses
           # (GPL, AGPL, LGPL, SSPL) and source-available licenses are not
