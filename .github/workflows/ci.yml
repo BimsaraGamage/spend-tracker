@@ -95,12 +95,37 @@ jobs:
           advanced-security: false
           annotations: true
 
+  database:
+    name: Database tests (pgTAP)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: supabase/setup-cli@45a513f8c64c0bc8e0e3dfe572b5c95be85f6359 # v3.0.1
+        with:
+          version: 2.119.0
+
+      # Only Postgres and Auth: Auth creates the auth schema the tests rely on.
+      # Starting the database also applies supabase/migrations.
+      - name: Start the local database
+        run: >-
+          supabase start
+          -x realtime,storage-api,imgproxy,kong,mailpit,postgrest,postgres-meta,studio,edge-runtime,logflare,vector,supavisor
+
+      - name: Run the pgTAP tests
+        run: supabase test db
+
   # The only check the main-branch ruleset requires. Adding or renaming jobs
   # above never needs a ruleset change; just list them in `needs`.
   required:
     name: required
     if: always()
-    needs: [checks, workflow-security]
+    needs: [checks, workflow-security, database]
     runs-on: ubuntu-24.04
     timeout-minutes: 5
     permissions: {}
