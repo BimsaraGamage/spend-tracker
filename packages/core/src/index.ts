@@ -17,3 +17,4 @@ export {
   sumMoney,
   zeroMoney,
 } from "./money/money";
+export { parseMoney, toDecimalString } from "./money/decimal";
