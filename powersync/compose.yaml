@@ -1,0 +1,86 @@
+# The PowerSync service for local development and CI (see README.md).
+#
+# It joins the network of the local Supabase stack (`supabase start`) and
+# replicates from its database. Its bucket storage, the service's working copy
+# of the synced data, lives in a separate Postgres that is rebuilt from the
+# database on every start. Staging and production use PowerSync Cloud instead
+# (docs/operations/sync-service.md).
+#
+# Start it with ./powersync/up.sh, which writes this run's secrets to
+# powersync/.env first.
+
+name: spend-tracker-sync
+
+services:
+  storage:
+    image: postgres:17.11-alpine3.24@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    environment:
+      POSTGRES_USER: powersync_storage
+      POSTGRES_DB: powersync_storage
+      POSTGRES_PASSWORD: ${PS_STORAGE_PASSWORD:?run ./powersync/up.sh}
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test:
+        ["CMD-SHELL", "pg_isready -U powersync_storage -d powersync_storage"]
+      interval: 2s
+      timeout: 5s
+      retries: 30
+
+  # Lets powersync_role sign in with this run's password, and drops the
+  # replication slots of earlier runs, whose storage is gone.
+  enable-replication:
+    image: postgres:17.11-alpine3.24@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    networks: [supabase]
+    environment:
+      # The local Supabase stack's fixed development credentials.
+      PGHOST: db.supabase.internal
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: postgres
+      PS_REPLICATION_PASSWORD: ${PS_REPLICATION_PASSWORD:?run ./powersync/up.sh}
+    volumes:
+      - ./enable-replication.sql:/enable-replication.sql:ro
+    command:
+      - sh
+      - -c
+      - psql -X -v ON_ERROR_STOP=1 -v password="$$PS_REPLICATION_PASSWORD" -f /enable-replication.sql
+    restart: "no"
+
+  powersync:
+    image: journeyapps/powersync-service:1.26.1@sha256:413a0c813e96935ebe7203b5759f8a594a7b7cd8aa42134713e63af637e0f079
+    command: ["start", "-r", "unified"]
+    depends_on:
+      storage:
+        condition: service_healthy
+      enable-replication:
+        condition: service_completed_successfully
+    networks: [default, supabase]
+    environment:
+      POWERSYNC_CONFIG_PATH: /config/service.yaml
+      PS_DATA_SOURCE_URI: postgresql://powersync_role:${PS_REPLICATION_PASSWORD:?run ./powersync/up.sh}@db.supabase.internal:5432/postgres
+      PS_STORAGE_URI: postgresql://powersync_storage:${PS_STORAGE_PASSWORD:?run ./powersync/up.sh}@storage:5432/powersync_storage
+      PS_SUPABASE_JWT_SECRET: ${PS_SUPABASE_JWT_SECRET:?run ./powersync/up.sh}
+      PS_ADMIN_TOKEN: ${PS_ADMIN_TOKEN:?run ./powersync/up.sh}
+    volumes:
+      - ./service.yaml:/config/service.yaml:ro
+      - ./sync-config.yaml:/config/sync-config.yaml:ro
+    ports:
+      # Loopback only: other machines can't reach it.
+      - 127.0.0.1:8080:8080
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://localhost:8080/probes/liveness').then((r) => process.exit(r.ok ? 0 : 1), () => process.exit(1))"
+      interval: 2s
+      timeout: 2s
+      retries: 60
+
+networks:
+  # Created by `supabase start`, and named after project_id in
+  # supabase/config.toml.
+  supabase:
+    name: supabase_network_spend-tracker
+    external: true
