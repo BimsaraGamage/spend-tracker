@@ -1,0 +1,34 @@
+packages:
+  - apps/*
+  - packages/*
+
+# Supply-chain safeguards. See SECURITY.md.
+#
+# Refuse any package version published less than 3 days ago (value in minutes).
+# Hijacked releases are usually detected and pulled within hours to days, so a
+# waiting period keeps them out of our lockfile.
+minimumReleaseAge: 4320
+
+# Transitive dependencies may only come from the npm registry, never from git
+# repositories or tarball URLs.
+blockExoticSubdeps: true
+
+# Fail the install when a dependency wants to run an install script that is not
+# explicitly allowed (true) or denied (false) in `allowBuilds`.
+strictDepBuilds: true
+allowBuilds:
+  # Installs the git hooks defined in lefthook.yml.
+  lefthook: true
+
+# Shared dependency versions, defined once. Packages reference them as
+# "catalog:" so the whole workspace always uses the same version.
+catalog:
+  "@eslint/js": 9.39.5
+  "@types/node": 24.19.0
+  eslint: 9.39.5
+  eslint-config-prettier: 10.1.8
+  globals: 17.13.0
+  lefthook: 2.1.15
+  prettier: 3.9.9
+  typescript: 6.0.3
+  typescript-eslint: 8.71.0

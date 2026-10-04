@@ -1,0 +1,19 @@
+# Git hooks managed by lefthook (https://lefthook.dev).
+# They are a fast local safety net. CI re-runs every check, and
+# `git commit --no-verify` skips them in an emergency.
+
+pre-commit:
+  commands:
+    format-check:
+      glob: "*.{js,mjs,cjs,ts,tsx,json,jsonc,md,yml,yaml,css}"
+      # Check only. Auto-fixing would re-stage whole files and could sweep
+      # unrelated, unstaged edits into the commit. Fix with `pnpm format`.
+      run: pnpm exec prettier --check --ignore-unknown {staged_files}
+
+pre-push:
+  commands:
+    lint-typecheck:
+      env:
+        TURBO_SCM_BASE: origin/main
+        TURBO_TELEMETRY_DISABLED: "1"
+      run: pnpm exec turbo run lint typecheck --affected
