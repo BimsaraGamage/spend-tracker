@@ -26,9 +26,6 @@ In every mode, irreversible or outward-facing actions are always confirmed: maki
 
 New entries go into the pull request that acts on the decision.
 
-## Index
+## Files
 
-| File                                                 | Period                                                         | Entries     |
-| ---------------------------------------------------- | -------------------------------------------------------------- | ----------- |
-| [2026-10-04-planning.md](2026-10-04-planning.md)     | Planning: product, architecture, security, repository, process | D-01 – D-40 |
-| [2026-10-04-foundation.md](2026-10-04-foundation.md) | Phase 0: repository foundation                                 | D-41 – D-69 |
+One file per day and topic, named `YYYY-MM-DD-<topic>.md`. Sorted by name, the files are in chronological order, so there is no separate index to keep up to date. Entry IDs continue across files.

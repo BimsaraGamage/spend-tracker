@@ -190,3 +190,9 @@ Prompts and decisions made while building the repository foundation, in chronolo
   - This journal, with all prompts so far backfilled and decisions taken on autopilot logged as well.
   - It lives in the repository, so it survives the loss of any one machine. Personal details are left out.
   - Future entries arrive in the pull request that acts on the decision (autopilot).
+
+### D-70 · No manual index in the journal (autopilot)
+
+- **Decision:** Remove the index table from the journal README. Files are named `YYYY-MM-DD-<topic>.md`, so sorting by name is chronological (autopilot).
+- **Why:** Several pull requests are open at once, and each adds journal entries. A shared index table would give every one of them a merge conflict.
+- **Lesson:** Avoid "registry" files that every change must edit. Let naming conventions do the indexing.
