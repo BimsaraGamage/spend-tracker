@@ -24,6 +24,7 @@ pnpm format:check   # Prettier
 pnpm lint           # type-aware ESLint in every package
 pnpm typecheck      # TypeScript in every package
 pnpm test           # tests in every package
+pnpm --filter @spend-tracker/app web # the app in a browser, through Expo's dev server
 ```
 
 Database (needs Docker; CI always runs it), with the Supabase CLI pinned in `.github/workflows/ci.yml`:
@@ -36,12 +37,13 @@ supabase test db     # pgTAP tests in supabase/tests/database
 pnpm --filter @spend-tracker/sync test:integration # what each user's devices receive
 ```
 
-Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
+Set `TURBO_TELEMETRY_DISABLED=1` and `EXPO_NO_TELEMETRY=1`; tools must not phone home.
 
 ## Layout
 
 | Path              | Contents                                                        |
 | ----------------- | --------------------------------------------------------------- |
+| `apps/app`        | The Expo app: routes in `src/app`, features in `src/features`   |
 | `packages/config` | Shared TypeScript and ESLint configuration                      |
 | `packages/core`   | Pure domain logic: money, currencies, IDs, dates                |
 | `packages/data`   | Device database schema, and the sync and upload connector       |
@@ -50,10 +52,7 @@ Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
 | `supabase/`       | Database migrations, RLS policies and pgTAP tests               |
 | `powersync/`      | Sync Streams, the local PowerSync service, and their tests      |
 
-Planned, not yet created:
-
-- `apps/app`: the Expo app;
-- `packages/ui`: design tokens and components.
+Planned, not yet created: `packages/ui`, for design tokens and components.
 
 Dependencies point one way: `apps → packages/data → packages/core` ([ARC1](docs/engineering-standards.md#3-architecture-arc)).
 
