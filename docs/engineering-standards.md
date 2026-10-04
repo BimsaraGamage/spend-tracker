@@ -120,10 +120,14 @@ Version 1.0, 2026-10-04. These rules apply to every change in this repository, w
 - **SYNC1: Every synced table has** `id uuid`, `ledger_id`, `created_at`, `updated_at` and `deleted_at`. The `ledgers` table's own `id` is its ledger id.
   - PowerSync evaluates sync-stream filters itself, on its copy of the data, so Postgres indexes don't speed them up.
   - Index the columns that RLS policies and app queries filter on, in Postgres and in the device schema.
-- **SYNC2: Uploads are idempotent.** Inserts are upserts by primary key, so a retry never creates a duplicate.
+- **SYNC2: Uploads are idempotent,** so a retry never creates a duplicate or loses a change.
+  - Inserts are plain inserts. A retried insert that already arrived fails on the primary key, and that counts as applied.
+  - Never upload with an upsert. Postgres checks read policies on the new row of `INSERT ... ON CONFLICT`, and a new ledger isn't readable until its owner membership exists.
+  - Local writes insert new rows and update existing ones; never `INSERT OR REPLACE` an existing row.
 - **SYNC3: Upload error policy.**
-  - Transient errors (network failures, timeouts, 5xx responses) retry with backoff.
-  - Permanent errors (constraint or RLS violations, validation failures) are removed from the queue, recorded on the device and shown to the user.
+  - Transient errors (network failures, timeouts, 5xx responses, expired sessions) retry with backoff.
+  - Permanent errors are removed from the queue, recorded on the device and shown to the user. They are data exceptions and integrity violations (SQLSTATE classes 22 and 23), RLS refusals (42501), and updates that RLS silently skipped (zero rows changed).
+  - Database rules that reject a change must raise a class 22 or 23 error, so devices treat it as permanent.
   - Never let one bad change block the queue, and never drop a change silently.
 - **SYNC4: Conflicts resolve last-write-wins per row,** and the audit log keeps the history. Invariants that span rows, such as transfers, go through SQL functions, never through separate row writes.
 - **SYNC5: Schema changes must tolerate offline devices,** which may be weeks out of date.
