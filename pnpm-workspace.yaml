@@ -16,7 +16,9 @@ blockExoticSubdeps: true
 # Fail the install when a dependency wants to run an install script that is not
 # explicitly allowed (true) or denied (false) in `allowBuilds`.
 strictDepBuilds: true
-allowBuilds: {}
+allowBuilds:
+  # Installs the git hooks defined in lefthook.yml.
+  lefthook: true
 
 # Shared dependency versions, defined once. Packages reference them as
 # "catalog:" so the whole workspace always uses the same version.
@@ -26,6 +28,7 @@ catalog:
   eslint: 9.39.5
   eslint-config-prettier: 10.1.8
   globals: 17.13.0
+  lefthook: 2.1.15
   prettier: 3.9.9
   typescript: 6.0.3
   typescript-eslint: 8.71.0

@@ -21,6 +21,7 @@
     "format:check": "prettier --check ."
   },
   "devDependencies": {
+    "lefthook": "catalog:",
     "prettier": "catalog:",
     "turbo": "2.11.6"
   },
