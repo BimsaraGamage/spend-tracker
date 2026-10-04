@@ -29,8 +29,10 @@ pnpm test           # tests in every package
 Database (needs Docker; CI always runs it), with the Supabase CLI pinned in `.github/workflows/ci.yml`:
 
 ```sh
-supabase start   # local Postgres and Auth; applies supabase/migrations
-supabase test db # pgTAP tests in supabase/tests/database
+supabase start       # local Postgres and Auth; applies supabase/migrations
+supabase test db     # pgTAP tests in supabase/tests/database
+./powersync/up.sh    # local PowerSync service, after supabase start
+./powersync/check.sh # checks that it replicates without errors
 ```
 
 Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
@@ -40,17 +42,17 @@ Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
 | Path              | Contents                                                        |
 | ----------------- | --------------------------------------------------------------- |
 | `packages/config` | Shared TypeScript and ESLint configuration                      |
+| `packages/core`   | Pure domain logic: money, currencies, IDs, dates                |
 | `docs/`           | Requirements, standards, the review guide, the decision journal |
 | `.github/`        | CI and security workflows, issue and PR templates, code owners  |
 | `supabase/`       | Database migrations, RLS policies and pgTAP tests               |
+| `powersync/`      | Sync Streams, and the local PowerSync service                   |
 
 Planned, not yet created:
 
 - `apps/app`: the Expo app;
-- `packages/core`: pure domain logic;
 - `packages/data`: local database, queries and the sync connector;
-- `packages/ui`: design tokens and components;
-- `powersync/`: the sync configuration.
+- `packages/ui`: design tokens and components.
 
 Dependencies point one way: `apps → packages/data → packages/core` ([ARC1](docs/engineering-standards.md#3-architecture-arc)).
 
