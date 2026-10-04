@@ -1,6 +1,6 @@
 # Engineering standards
 
-Version 1.0, 2026-10-04. These rules apply to every change in this repository, whether a person or an AI agent makes it. Where other material lives:
+Version 1.1, 2026-10-04. These rules apply to every change in this repository, whether a person or an AI agent makes it. Where other material lives:
 
 - repository facts (commands, layout, test policy): [`AGENTS.md`](../AGENTS.md);
 - how pull requests are reviewed: [`docs/pr-review.md`](pr-review.md);
@@ -51,7 +51,7 @@ Version 1.0, 2026-10-04. These rules apply to every change in this repository, w
   - Sources: the docs shipped in `node_modules/<tool>/`, the `action.yml` at the pinned commit, the schema bundled with the package.
   - Training data and blog posts go stale.
 - **WF6: MUST record decisions.**
-  - Every decision prompt, and every decision taken without one, gets an entry in [`docs/journal/`](journal/) in the PR that acts on it.
+  - Record project decisions and their rationale in [`docs/journal/`](journal/) in the PR that acts on them. Include the relevant requirements, alternatives, outcome and verification.
   - Architecture decisions also get an ADR.
 - **WF7: MUST finish each PR with a handoff.** Include:
   - the behaviour change;

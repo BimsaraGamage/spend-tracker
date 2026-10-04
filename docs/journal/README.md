@@ -1,31 +1,26 @@
 # Decision journal
 
-A chronological record of every decision prompt in this project: what was asked, which options were offered, what was chosen, who chose it, and what was done as a result.
+A record of project decisions: the context, alternatives, chosen approach, rationale and outcome. Entries help contributors understand the product and engineering constraints behind a change.
 
-Significant architecture decisions also get a formal ADR. This journal keeps the complete trail, including small decisions, so that anyone, including future maintainers, can see how the project got here and why.
+Significant architecture decisions also receive a formal [ADR](../adr/README.md). The journal connects requirements, implementation and verification without duplicating the architecture records.
 
-## How to read an entry
+## Entry format
 
-Each entry has a stable ID (`D-<number>`) and these fields:
+Each entry has a stable ID (`D-<number>`) and the fields relevant to the decision:
 
-| Field        | Meaning                                                                                                                           |
-| ------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| **Prompt**   | The question as it was asked, sometimes shortened                                                                                 |
-| **Options**  | The choices offered. ★ marks the recommended option                                                                               |
-| **Decision** | What was chosen, and by whom: the **maintainer**, or **autopilot** (the recommended option, taken automatically without a prompt) |
-| **Action**   | What was done as a result, with links to pull requests or documents where they exist                                              |
-| **Lesson**   | The reusable principle, for decisions worth remembering                                                                           |
+| Field                | Meaning                                                         |
+| -------------------- | --------------------------------------------------------------- |
+| **Context**          | The problem, constraint or requirement being addressed          |
+| **Options**          | Alternatives considered and their tradeoffs                     |
+| **Decision**         | The selected approach and its status or source                  |
+| **Why**              | Supporting evidence, assumptions and unresolved questions       |
+| **Action / outcome** | What changed, linked artifacts, verification and remaining work |
+| **Lesson**           | A reusable engineering consideration, where useful              |
 
-Decisions are made in one of three collaboration modes, which the maintainer can switch at any time:
+Historical entries may use **Prompt** for the decision question or **Direction** for a project instruction. Their field names and decision provenance do not prescribe a contributor interaction process.
 
-- **guided:** the maintainer is asked at every important decision, turning point and low-confidence moment;
-- **balanced:** easily reversible decisions are taken automatically, and hard-to-reverse ones are asked;
-- **autopilot:** the recommended option is always taken, and each decision is logged here.
+## Adding entries
 
-In every mode, irreversible or outward-facing actions are always confirmed: making something public, deleting, merging, spending money and handling secrets.
+Record decisions about product scope, architecture, implementation, security, delivery or operations in the PR that acts on them (WF6). Link the affected requirements, documents and tests. Distinguish proposals from approved requirements, and intended actions from observed results. Report exact verification commands and results in the PR handoff (WF7).
 
-New entries go into the pull request that acts on the decision.
-
-## Files
-
-One file per day and topic, named `YYYY-MM-DD-<topic>.md`. Sorted by name, the files are in chronological order, so there is no separate index to keep up to date. Entry IDs continue across files.
+Use one file per day and topic, named `YYYY-MM-DD-<topic>.md`. Dates group files; stable IDs establish the decision sequence within a day. Never renumber or reuse IDs, including gaps left by removed entries.

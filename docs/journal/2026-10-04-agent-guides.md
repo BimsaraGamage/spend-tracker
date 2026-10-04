@@ -15,4 +15,3 @@
 
 - **Decision:** The shared `/review-pr` skill runs the `docs/pr-review.md` procedure and never edits, pushes, comments, approves or merges (autopilot).
 - **Why:** A review tool that can change what it reviews isn't independent. Keeping it read-only also keeps merges with the maintainer (D-46).
-- **Note:** The maintainer's personal mode shortcuts (`/guided`, `/balanced`, `/autopilot`) stay outside the repository. They are excluded locally through `.git/info/exclude`, not `.gitignore`, so they leave no trace in the public repository.
