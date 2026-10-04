@@ -37,6 +37,22 @@ pnpm install           # install dependencies and the git hooks
 
 **Git hooks.** Before each commit, the formatting of staged files is checked. Before each push, packages changed since `origin/main` are linted and type-checked. CI runs every check again, so in an emergency you can skip the hooks with `--no-verify`.
 
+Hooks run in the environment that started git, which may not be your terminal: an editor's Git panel, or a default Node version other than 24. If a hook reports `pnpm: not found` and you use nvm, create two untracked (gitignored) files in the repository root:
+
+```sh
+# .lefthook-local.rc: load nvm and switch to the Node version in .nvmrc
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && . "$NVM_DIR/nvm.sh"
+nvm use --silent >/dev/null 2>&1 || true
+```
+
+```yaml
+# lefthook-local.yml (the path must be absolute)
+rc: /absolute/path/to/spend-tracker/.lefthook-local.rc
+```
+
+Then reinstall the hooks, because the rc file is built into them: `pnpm exec lefthook install -f`.
+
 **Supply-chain rules.** pnpm refuses package versions published less than 3 days ago. It also blocks dependency install scripts unless they are listed under `allowBuilds` in `pnpm-workspace.yaml`. If an install fails because a version is too new, wait or choose an older version; don't disable the check.
 
 **Telemetry.** Turborepo sends anonymous usage data by default. Opt out with `pnpm exec turbo telemetry disable`, or set `TURBO_TELEMETRY_DISABLED=1`. CI always disables it.
