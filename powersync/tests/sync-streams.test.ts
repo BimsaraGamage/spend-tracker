@@ -62,6 +62,57 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     description: "Groceries",
     created_by: owner.id,
   });
+
+  const tagId = uuidv7();
+  const costTypeId = uuidv7();
+  await insertRow(owner, "tags", {
+    id: tagId,
+    ledger_id: ledger.ledgerId,
+    name: "groceries",
+    created_by: owner.id,
+  });
+  await insertRow(owner, "cost_types", {
+    id: costTypeId,
+    ledger_id: ledger.ledgerId,
+    name: "Food",
+    tag_ids: JSON.stringify([tagId]),
+    created_by: owner.id,
+  });
+  await insertRow(owner, "estimated_costs", {
+    id: uuidv7(),
+    ledger_id: ledger.ledgerId,
+    month: "2026-10",
+    cost_type_id: costTypeId,
+    amount_minor: 100000,
+    currency: "LKR",
+    tag_ids: JSON.stringify([tagId]),
+    note: "Food budget",
+    created_by: owner.id,
+  });
+  await insertRow(owner, "actual_costs", {
+    id: uuidv7(),
+    ledger_id: ledger.ledgerId,
+    month: "2026-10",
+    cost_type_id: costTypeId,
+    amount_minor: 50000,
+    currency: "LKR",
+    tag_ids: JSON.stringify([tagId]),
+    note: "Groceries",
+    date: "2026-10-04",
+    created_by: owner.id,
+  });
+  await insertRow(owner, "fixed_obligations", {
+    id: uuidv7(),
+    ledger_id: ledger.ledgerId,
+    month: "2026-10",
+    cost_type_id: costTypeId,
+    amount_minor: 100000,
+    currency: "LKR",
+    due_day: 1,
+    paid: 0,
+    created_by: owner.id,
+  });
+
   return ledger;
 }
 

@@ -61,6 +61,73 @@ const transactions = new Table(
   },
 );
 
+const tags = new Table(
+  {
+    ledger_id: column.text,
+    name: column.text,
+    created_at: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { ledger: ["ledger_id"] } },
+);
+
+const costTypes = new Table(
+  {
+    ledger_id: column.text,
+    name: column.text,
+    tag_ids: column.text, // JSON array of UUIDs
+    created_at: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { ledger: ["ledger_id"] } },
+);
+
+const estimatedCosts = new Table(
+  {
+    ledger_id: column.text,
+    month: column.text,
+    cost_type_id: column.text,
+    amount_minor: column.integer,
+    currency: column.text,
+    tag_ids: column.text, // JSON array of UUIDs
+    note: column.text,
+    created_at: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { ledger: ["ledger_id"] } },
+);
+
+const actualCosts = new Table(
+  {
+    ledger_id: column.text,
+    month: column.text,
+    cost_type_id: column.text,
+    amount_minor: column.integer,
+    currency: column.text,
+    tag_ids: column.text, // JSON array of UUIDs
+    note: column.text,
+    date: column.text,
+    created_at: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { ledger: ["ledger_id"] } },
+);
+
+const fixedObligations = new Table(
+  {
+    ledger_id: column.text,
+    month: column.text,
+    cost_type_id: column.text,
+    amount_minor: column.integer,
+    currency: column.text,
+    due_day: column.integer,
+    paid: column.integer, // 0 or 1 boolean
+    created_at: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { ledger: ["ledger_id"] } },
+);
+
 /**
  * Changes the server refused for good. Kept on this device only, so the app
  * can tell the user what happened, and never uploaded (SYNC3).
@@ -84,6 +151,11 @@ export const AppSchema = new Schema({
   ledger_members: ledgerMembers,
   accounts,
   transactions,
+  tags,
+  cost_types: costTypes,
+  estimated_costs: estimatedCosts,
+  actual_costs: actualCosts,
+  fixed_obligations: fixedObligations,
   upload_rejections: uploadRejections,
 });
 

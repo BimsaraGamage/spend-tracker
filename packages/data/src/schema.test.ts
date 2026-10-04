@@ -26,6 +26,11 @@ describe("AppSchema", () => {
       ["ledger_members", false],
       ["accounts", false],
       ["transactions", false],
+      ["tags", false],
+      ["cost_types", false],
+      ["estimated_costs", false],
+      ["actual_costs", false],
+      ["fixed_obligations", false],
       ["upload_rejections", true],
     ]);
   });
