@@ -33,6 +33,7 @@ supabase start       # local Postgres and Auth; applies supabase/migrations
 supabase test db     # pgTAP tests in supabase/tests/database
 ./powersync/up.sh    # local PowerSync service, after supabase start
 ./powersync/check.sh # checks that it replicates without errors
+pnpm --filter @spend-tracker/sync test:integration # what each user's devices receive
 ```
 
 Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
@@ -46,7 +47,7 @@ Set `TURBO_TELEMETRY_DISABLED=1`; tools must not phone home.
 | `docs/`           | Requirements, standards, the review guide, the decision journal |
 | `.github/`        | CI and security workflows, issue and PR templates, code owners  |
 | `supabase/`       | Database migrations, RLS policies and pgTAP tests               |
-| `powersync/`      | Sync Streams, and the local PowerSync service                   |
+| `powersync/`      | Sync Streams, the local PowerSync service, and their tests      |
 
 Planned, not yet created:
 
@@ -92,6 +93,7 @@ Every behaviour change ships with tests at the lowest layer that proves it ([TES
 - unit tests for `packages/core`;
 - component tests for the app;
 - pgTAP tests for RLS, constraints and SQL functions;
+- integration tests in `powersync/tests` for what each user's devices receive;
 - Playwright (web) and Maestro (Android) tests for user journeys.
 
 CI runs formatting, lint, type checks and tests on every pull request, alongside CodeQL, dependency review and workflow security scans.
