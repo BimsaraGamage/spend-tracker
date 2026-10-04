@@ -64,3 +64,9 @@
   - `node-forge` is used by the Expo CLI on a developer's machine, to read local iOS signing certificates and to sign development manifests. Production builds don't use it.
   - Holding the app would stop all app work for an unknown time.
 - **Follow-up:** Remove each exception when its package releases a fix. Dependabot alerts will show it.
+
+### D-157 · Allow the Unicode data license and public-domain dedications (autopilot)
+
+- **Finding:** With the advisories accepted, dependency review failed on licenses. GitHub's license scanner reports four build-time packages under licenses outside the allow list: Babel's Unicode tables (`unicode-match-property-value-ecmascript`, `unicode-property-aliases-ecmascript`) and `xmlbuilder` as "Unicode AND MIT", and `big-integer` as "public domain AND Unlicense".
+- **Decision:** Add the Unicode data license (`Unicode-3.0`, `Unicode-DFS-2016`, and the scanner's `LicenseRef-scancode-unicode`) and public-domain dedications (`LicenseRef-scancode-public-domain`) to the allow list (autopilot).
+- **Why:** Both are permissive and compatible with distributing the app under Apache-2.0, like CC0 and the Unlicense, which were already allowed. The rule against copyleft and source-available licenses is unchanged.
