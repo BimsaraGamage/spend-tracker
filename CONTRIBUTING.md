@@ -19,10 +19,27 @@ Never include real financial data, account numbers or personal information in is
 
 Prerequisites:
 
-- Node.js 24 LTS. The version is pinned in [`.nvmrc`](.nvmrc), so `nvm use` picks it up.
-- Docker, for the local database and sync stack.
+- Node.js 24 LTS. The version is pinned in [`.nvmrc`](.nvmrc), so `nvm install && nvm use` picks it up.
+- Docker, which the local database and sync stack will need.
 
-Exact setup commands will be added here with the monorepo tooling.
+```sh
+corepack enable pnpm   # use the exact pnpm version pinned in package.json
+pnpm install           # install dependencies and the git hooks
+```
+
+| Command             | What it does                               |
+| ------------------- | ------------------------------------------ |
+| `pnpm lint`         | Type-aware ESLint in every package         |
+| `pnpm typecheck`    | TypeScript checks in every package         |
+| `pnpm test`         | Unit tests in every package                |
+| `pnpm format`       | Format all files with Prettier             |
+| `pnpm format:check` | Check formatting without changing anything |
+
+**Git hooks.** Before each commit, the formatting of staged files is checked. Before each push, packages changed since `origin/main` are linted and type-checked. CI runs every check again, so in an emergency you can skip the hooks with `--no-verify`.
+
+**Supply-chain rules.** pnpm refuses package versions published less than 3 days ago. It also blocks dependency install scripts unless they are listed under `allowBuilds` in `pnpm-workspace.yaml`. If an install fails because a version is too new, wait or choose an older version; don't disable the check.
+
+**Telemetry.** Turborepo sends anonymous usage data by default. Opt out with `pnpm exec turbo telemetry disable`, or set `TURBO_TELEMETRY_DISABLED=1`. CI always disables it.
 
 ## Workflow
 
