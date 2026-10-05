@@ -77,6 +77,13 @@ const serverManagedColumns = new Set([
   "deleted_at",
 ]);
 
+/**
+ * Columns that hold JSON in Postgres but text on the device, which has no
+ * JSON type. Uploads send the parsed value, so Postgres stores the list
+ * itself, not a string that holds it (D-175).
+ */
+const jsonColumns = new Set(["tag_ids"]);
+
 /** RLS skips a row the user may not change without raising an error. */
 const notApplied: UploadOutcome = {
   kind: "rejected",
@@ -144,12 +151,16 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
     const table = this.#supabase.from(change.table);
     switch (change.op) {
       case UpdateType.PUT: {
+        const columns = clientColumns(change);
+        if (!columns.ok) {
+          return columns.rejection;
+        }
         // A plain insert, not an upsert: Postgres checks read policies on the
         // new row of INSERT ... ON CONFLICT, and a new ledger isn't readable
         // until its owner membership exists. An insert that already arrived
         // fails on its primary key instead, which counts as applied.
         const { error } = await table.insert({
-          ...clientColumns(change),
+          ...columns.values,
           id: change.id,
         });
         return error === null
@@ -157,12 +168,15 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
           : classifyUploadError(error, change.table);
       }
       case UpdateType.PATCH: {
-        const changes = clientColumns(change);
-        if (Object.keys(changes).length === 0) {
+        const columns = clientColumns(change);
+        if (!columns.ok) {
+          return columns.rejection;
+        }
+        if (Object.keys(columns.values).length === 0) {
           return applied;
         }
         const { error, count } = await table
-          .update(changes, { count: "exact" })
+          .update(columns.values, { count: "exact" })
           .eq("id", change.id);
         if (error !== null) {
           return classifyUploadError(error, change.table);
@@ -183,12 +197,40 @@ export class SupabaseConnector implements PowerSyncBackendConnector {
   }
 }
 
-/** The change's columns, without those the server maintains itself. */
-function clientColumns(change: CrudEntry): Record<string, unknown> {
+/**
+ * The change's columns as the server takes them: without those it maintains
+ * itself, and with JSON columns parsed. A JSON column holding text that isn't
+ * JSON can never upload, so the change is refused (SYNC3).
+ */
+function clientColumns(
+  change: CrudEntry,
+):
+  | { readonly ok: true; readonly values: Record<string, unknown> }
+  | { readonly ok: false; readonly rejection: UploadOutcome } {
+  const values: Record<string, unknown> = {};
   const columns = (change.opData ?? {}) as Record<string, unknown>;
-  return Object.fromEntries(
-    Object.entries(columns).filter(([name]) => !serverManagedColumns.has(name)),
-  );
+  for (const [name, value] of Object.entries(columns)) {
+    if (serverManagedColumns.has(name)) {
+      continue;
+    }
+    if (jsonColumns.has(name) && typeof value === "string") {
+      try {
+        values[name] = JSON.parse(value) as unknown;
+      } catch {
+        return {
+          ok: false,
+          rejection: {
+            kind: "rejected",
+            code: "invalid_json",
+            message: `${name} holds text that isn't JSON.`,
+          },
+        };
+      }
+    } else {
+      values[name] = value;
+    }
+  }
+  return { ok: true, values };
 }
 
 /**

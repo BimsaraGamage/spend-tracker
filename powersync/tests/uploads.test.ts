@@ -9,7 +9,7 @@
  */
 import { type CrudEntry, CrudTransaction, UpdateType } from "@powersync/common";
 import { uuidv7 } from "@spend-tracker/core";
-import { SupabaseConnector } from "@spend-tracker/data";
+import { AppSchema, SupabaseConnector } from "@spend-tracker/data";
 import { describe, expect, test, vi } from "vitest";
 
 import {
@@ -22,13 +22,24 @@ import {
 
 let nextClientId = 1;
 
-/** A change from the device's upload queue. */
+/**
+ * A change from the device's upload queue. As on a real device, it can only
+ * hold columns of the device schema.
+ */
 function queued(
   op: UpdateType,
   table: string,
   id: string,
   opData?: Record<string, unknown>,
 ): CrudEntry {
+  const columns = AppSchema.tables
+    .find(({ name }) => name === table)
+    ?.columns.map(({ name }) => name);
+  for (const column of Object.keys(opData ?? {})) {
+    if (!columns?.includes(column)) {
+      throw new Error(`The device schema has no column ${table}.${column}`);
+    }
+  }
   return {
     clientId: nextClientId++,
     op,
@@ -174,6 +185,71 @@ describe("uploads", () => {
       expect(synced.get("accounts")?.get(ids.account)).toMatchObject({
         name: "Cash",
       });
+    });
+  });
+
+  test("a month's plan from the device uploads with its tag lists as JSON, and syncs back (D-175)", async () => {
+    const alice = await createUser();
+    const { ids, changes } = newLedger(alice);
+    const plan = {
+      tag: uuidv7(),
+      costType: uuidv7(),
+      fixedCost: uuidv7(),
+      payment: uuidv7(),
+      budget: uuidv7(),
+    };
+    // The device stores a tag list as JSON text.
+    const tagIds = JSON.stringify([plan.tag]);
+
+    const result = await upload(alice, [
+      ...changes,
+      queued(UpdateType.PUT, "tags", plan.tag, {
+        ledger_id: ids.ledger,
+        name: "Home",
+        created_by: alice.id,
+      }),
+      queued(UpdateType.PUT, "cost_types", plan.costType, {
+        ledger_id: ids.ledger,
+        name: "Rent",
+        tag_ids: tagIds,
+        created_by: alice.id,
+      }),
+      queued(UpdateType.PUT, "fixed_obligations", plan.fixedCost, {
+        ledger_id: ids.ledger,
+        month: "2026-10",
+        cost_type_id: plan.costType,
+        amount_minor: 90_000,
+        currency: "LKR",
+        due_day: 20,
+        created_by: alice.id,
+      }),
+      queued(UpdateType.PUT, "actual_costs", plan.payment, {
+        ledger_id: ids.ledger,
+        month: "2026-10",
+        cost_type_id: plan.costType,
+        amount_minor: 40_000,
+        currency: "LKR",
+        tag_ids: tagIds,
+        note: "",
+        date: "2026-10-18",
+        fixed_obligation_id: plan.fixedCost,
+        created_by: alice.id,
+      }),
+      queued(UpdateType.PUT, "monthly_budgets", plan.budget, {
+        ledger_id: ids.ledger,
+        month: "2026-10",
+        amount_minor: 300_000,
+        currency: "LKR",
+        created_by: alice.id,
+      }),
+    ]);
+
+    expect(result).toEqual({ completed: true, rejections: [] });
+    await syncUntil(alice, (synced) => {
+      expect(idsIn(synced, "monthly_budgets")).toEqual([plan.budget]);
+      const payment = synced.get("actual_costs")?.get(plan.payment);
+      expect(payment).toMatchObject({ fixed_obligation_id: plan.fixedCost });
+      expect(JSON.parse(String(payment?.["tag_ids"]))).toEqual([plan.tag]);
     });
   });
 
