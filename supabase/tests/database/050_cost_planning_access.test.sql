@@ -86,12 +86,12 @@ select throws_ok($$ insert into public.actual_costs (id, ledger_id, month, cost_
   values ('80000000-0000-4000-8000-0000000000c1', '10000000-0000-4000-8000-00000000000a', '2026-10', '60000000-0000-4000-8000-00000000000a', 1, 'LKR', '2026-10-04', '00000000-0000-4000-8000-00000000000c') $$,
   '42501', null, 'a viewer cannot record costs');
 update public.estimated_costs set amount_minor = 1 where id = '70000000-0000-4000-8000-00000000000a';
-update public.fixed_obligations set paid = true where id = '90000000-0000-4000-8000-00000000000a';
+update public.fixed_obligations set due_day = 1 where id = '90000000-0000-4000-8000-00000000000a';
 reset role;
 select results_eq(
   $$ select (select amount_minor from public.estimated_costs where id = '70000000-0000-4000-8000-00000000000a'),
-            (select paid from public.fixed_obligations where id = '90000000-0000-4000-8000-00000000000a') $$,
-  $$ values (100000::bigint, false) $$,
+            (select due_day from public.fixed_obligations where id = '90000000-0000-4000-8000-00000000000a') $$,
+  $$ values (100000::bigint, 20) $$,
   'a viewer''s updates change nothing');
 
 -- Anonymous users get nothing at all.

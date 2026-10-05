@@ -109,7 +109,6 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     amount_minor: 100000,
     currency: "LKR",
     due_day: 1,
-    paid: 0,
     created_by: owner.id,
   });
 
