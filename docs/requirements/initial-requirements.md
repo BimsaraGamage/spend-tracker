@@ -1,6 +1,6 @@
 # Initial requirements
 
-Status: **draft v0.2** (2026-10-04). These are the foundation requirements and the maintainer's initial cost-planning brief, plus explicitly marked proposals. Requested capabilities are requirements; unresolved calculation rules remain proposed. A requirement recorded here does not mean the feature is implemented.
+Status: **draft v0.3** (2026-10-05). These are the foundation requirements and the maintainer's initial cost-planning brief, with the product decisions that settle it, plus explicitly marked proposals. A requirement recorded here does not mean the feature is implemented.
 
 Requirement IDs are stable: never renumber or reuse them. Code, tests, pull requests and reviews cite them, for example `Implements FR-SK-3` or `Verifies NFR-SEC-1`.
 
@@ -72,14 +72,14 @@ The walking skeleton needs these three:
 
 ### Monthly cost planning and spending
 
-The [cost-planning specification](cost-planning.md) defines the initial product requirements, acceptance scenarios, traceability to the brief, and open calculation decisions. It uses the same stable IDs and source convention as this document:
+The [cost-planning specification](cost-planning.md) defines the initial product requirements, the product decisions that settle them, acceptance scenarios and traceability to the brief. It uses the same stable IDs and source convention as this document:
 
-- **FR-PLAN-1–2:** monthly estimated costs and totals by cost type;
+- **FR-PLAN-1–4:** monthly planned items, totals by cost type, a monthly budget, and positive amounts in the ledger's base currency;
 - **FR-TAG-1–5:** multiple tags on costs and cost types, tag reports, Untagged and combined tag filters;
 - **FR-ACT-1–3:** actual costs, creating a cost type during entry, and estimated-versus-actual totals;
-- **FR-FORECAST-1–2:** estimated exhaustion time and a projection graph accounting for fixed costs.
+- **FR-FORECAST-1–3:** the day the month's budget runs out, a projection graph accounting for fixed costs, and later a forecast of money in accounts.
 
-These extend the product scope after the walking skeleton; they do not change its completion criteria. Follow the linked specification before implementing them, especially its proposed rules for overlapping tags and forecasts.
+These extend the product scope after the walking skeleton; they do not change its completion criteria.
 
 ## Glossary
 

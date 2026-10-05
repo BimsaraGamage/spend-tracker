@@ -8,16 +8,17 @@ Significant architecture decisions also receive a formal [ADR](../adr/README.md)
 
 Each entry has a stable ID (`D-<number>`) and the fields relevant to the decision:
 
-| Field                | Meaning                                                         |
-| -------------------- | --------------------------------------------------------------- |
-| **Context**          | The problem, constraint or requirement being addressed          |
-| **Options**          | Alternatives considered and their tradeoffs                     |
-| **Decision**         | The selected approach and its status or source                  |
-| **Why**              | Supporting evidence, assumptions and unresolved questions       |
-| **Action / outcome** | What changed, linked artifacts, verification and remaining work |
-| **Lesson**           | A reusable engineering consideration, where useful              |
+| Field                | Meaning                                                                                |
+| -------------------- | -------------------------------------------------------------------------------------- |
+| **Question**         | The decision question, as it was asked                                                 |
+| **Context**          | The problem, constraint or requirement being addressed                                 |
+| **Options**          | Alternatives considered and their tradeoffs; ★ marks the recommended one               |
+| **Decision**         | The selected option and who chose it: the maintainer, or the assistant where delegated |
+| **Why**              | Supporting evidence, assumptions and unresolved questions                              |
+| **Action / outcome** | What changed, linked artifacts, verification and remaining work                        |
+| **Lesson**           | A reusable engineering consideration, where useful                                     |
 
-Historical entries may use **Prompt** for the decision question or **Direction** for a project instruction. Their field names and decision provenance do not prescribe a contributor interaction process.
+Entries record the question, the options and who chose, not the conversation around them (D-173). Historical entries may use **Prompt** for the decision question or **Direction** for a project instruction. Their field names and decision provenance do not prescribe a contributor interaction process.
 
 ## Adding entries
 
