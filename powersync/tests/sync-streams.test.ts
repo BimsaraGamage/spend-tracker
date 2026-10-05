@@ -75,7 +75,7 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     id: costTypeId,
     ledger_id: ledger.ledgerId,
     name: "Food",
-    tag_ids: JSON.stringify([tagId]),
+    tag_ids: [tagId],
     created_by: owner.id,
   });
   await insertRow(owner, "estimated_costs", {
@@ -85,7 +85,7 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     cost_type_id: costTypeId,
     amount_minor: 100000,
     currency: "LKR",
-    tag_ids: JSON.stringify([tagId]),
+    tag_ids: [tagId],
     note: "Food budget",
     created_by: owner.id,
   });
@@ -96,7 +96,7 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     cost_type_id: costTypeId,
     amount_minor: 50000,
     currency: "LKR",
-    tag_ids: JSON.stringify([tagId]),
+    tag_ids: [tagId],
     note: "Groceries",
     date: "2026-10-04",
     created_by: owner.id,
@@ -109,7 +109,6 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     amount_minor: 100000,
     currency: "LKR",
     due_day: 1,
-    paid: 0,
     created_by: owner.id,
   });
 

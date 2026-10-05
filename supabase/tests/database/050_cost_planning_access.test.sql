@@ -4,7 +4,7 @@
 -- Users: a owns ledger a, b owns ledger b, and c is a viewer of ledger a.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(17);
+select plan(22);
 
 insert into auth.users (id, email) values
   ('00000000-0000-4000-8000-00000000000a', 'a@example.test'),
@@ -21,6 +21,7 @@ as $$
   union all select 'estimated_costs', count(*) from public.estimated_costs where ledger_id = '10000000-0000-4000-8000-00000000000a'
   union all select 'actual_costs', count(*) from public.actual_costs where ledger_id = '10000000-0000-4000-8000-00000000000a'
   union all select 'fixed_obligations', count(*) from public.fixed_obligations where ledger_id = '10000000-0000-4000-8000-00000000000a'
+  union all select 'monthly_budgets', count(*) from public.monthly_budgets where ledger_id = '10000000-0000-4000-8000-00000000000a'
 $$;
 grant execute on function pg_temp.visible_plan_rows() to authenticated;
 
@@ -44,11 +45,17 @@ select lives_ok($$ insert into public.actual_costs (id, ledger_id, month, cost_t
 select lives_ok($$ insert into public.fixed_obligations (id, ledger_id, month, cost_type_id, amount_minor, currency, due_day, created_by)
   values ('90000000-0000-4000-8000-00000000000a', '10000000-0000-4000-8000-00000000000a', '2026-10', '60000000-0000-4000-8000-00000000000a', 90000, 'LKR', 20, '00000000-0000-4000-8000-00000000000a') $$,
   'the owner can add a fixed obligation');
-select results_eq($$ select row_count from pg_temp.visible_plan_rows() $$, $$ values (1::bigint), (1), (1), (1), (1) $$,
-  'the owner sees the ledger''s plan, spending and obligations');
+select lives_ok($$ insert into public.monthly_budgets (id, ledger_id, month, amount_minor, currency, created_by)
+  values ('a0000000-0000-4000-8000-00000000000a', '10000000-0000-4000-8000-00000000000a', '2026-10', 300000, 'LKR', '00000000-0000-4000-8000-00000000000a') $$,
+  'the owner can set a monthly budget');
+select results_eq($$ select row_count from pg_temp.visible_plan_rows() $$, $$ values (1::bigint), (1), (1), (1), (1), (1) $$,
+  'the owner sees the ledger''s plan, spending, obligations and budget');
 select throws_ok($$ insert into public.actual_costs (id, ledger_id, month, cost_type_id, amount_minor, currency, date, created_by)
   values ('80000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-00000000000a', '2026-10', '60000000-0000-4000-8000-00000000000a', 1, 'LKR', '2026-10-04', '00000000-0000-4000-8000-00000000000b') $$,
   '42501', null, 'a cost cannot be recorded in someone else''s name');
+select throws_ok($$ insert into public.monthly_budgets (id, ledger_id, month, amount_minor, currency, created_by)
+  values ('a0000000-0000-4000-8000-0000000000a2', '10000000-0000-4000-8000-00000000000a', '2026-11', 1, 'LKR', '00000000-0000-4000-8000-00000000000b') $$,
+  '42501', null, 'a budget cannot be set in someone else''s name');
 select throws_ok($$ delete from public.estimated_costs where id = '70000000-0000-4000-8000-00000000000a' $$,
   '42501', null, 'hard deletes are impossible: DELETE is not granted');
 reset role;
@@ -58,18 +65,23 @@ select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-0000000
 set local role authenticated;
 insert into public.ledgers (id, name, base_currency, time_zone, created_by)
 values ('10000000-0000-4000-8000-00000000000b', 'Mine', 'LKR', 'Asia/Colombo', '00000000-0000-4000-8000-00000000000b');
-select results_eq($$ select row_count from pg_temp.visible_plan_rows() $$, $$ values (0::bigint), (0), (0), (0), (0) $$,
+select results_eq($$ select row_count from pg_temp.visible_plan_rows() $$, $$ values (0::bigint), (0), (0), (0), (0), (0) $$,
   'another user sees nothing of the ledger''s plan');
 select throws_ok($$ insert into public.estimated_costs (id, ledger_id, month, cost_type_id, amount_minor, currency, created_by)
   values ('70000000-0000-4000-8000-0000000000b1', '10000000-0000-4000-8000-00000000000a', '2026-10', '60000000-0000-4000-8000-00000000000a', 1, 'LKR', '00000000-0000-4000-8000-00000000000b') $$,
   '42501', null, 'another user cannot add estimates to the ledger');
+select throws_ok($$ insert into public.monthly_budgets (id, ledger_id, month, amount_minor, currency, created_by)
+  values ('a0000000-0000-4000-8000-0000000000b1', '10000000-0000-4000-8000-00000000000a', '2026-11', 1, 'LKR', '00000000-0000-4000-8000-00000000000b') $$,
+  '42501', null, 'another user cannot set the ledger''s budget');
 update public.cost_types set name = 'Hijacked' where id = '60000000-0000-4000-8000-00000000000a';
 update public.actual_costs set amount_minor = 1 where id = '80000000-0000-4000-8000-00000000000a';
+update public.monthly_budgets set amount_minor = 1 where id = 'a0000000-0000-4000-8000-00000000000a';
 reset role;
 select results_eq(
   $$ select (select name from public.cost_types where id = '60000000-0000-4000-8000-00000000000a'),
-            (select amount_minor from public.actual_costs where id = '80000000-0000-4000-8000-00000000000a') $$,
-  $$ values ('Rent'::text, 90000::bigint) $$,
+            (select amount_minor from public.actual_costs where id = '80000000-0000-4000-8000-00000000000a'),
+            (select amount_minor from public.monthly_budgets where id = 'a0000000-0000-4000-8000-00000000000a') $$,
+  $$ values ('Rent'::text, 90000::bigint, 300000::bigint) $$,
   'another user''s updates change nothing');
 
 -- A viewer (added by the database owner: sharing has no client flow yet).
@@ -77,21 +89,26 @@ insert into public.ledger_members (id, ledger_id, user_id, role)
 values ('40000000-0000-4000-8000-0000000000c1', '10000000-0000-4000-8000-00000000000a', '00000000-0000-4000-8000-00000000000c', 'viewer');
 select set_config('request.jwt.claims', '{"sub":"00000000-0000-4000-8000-00000000000c","role":"authenticated"}', true);
 set local role authenticated;
-select results_eq($$ select row_count from pg_temp.visible_plan_rows() $$, $$ values (1::bigint), (1), (1), (1), (1) $$,
-  'a viewer can read the ledger''s plan, spending and obligations');
+select results_eq($$ select row_count from pg_temp.visible_plan_rows() $$, $$ values (1::bigint), (1), (1), (1), (1), (1) $$,
+  'a viewer can read the ledger''s plan, spending, obligations and budget');
 select throws_ok($$ insert into public.tags (id, ledger_id, name, created_by)
   values ('50000000-0000-4000-8000-0000000000c1', '10000000-0000-4000-8000-00000000000a', 'Mine', '00000000-0000-4000-8000-00000000000c') $$,
   '42501', null, 'a viewer cannot add tags');
 select throws_ok($$ insert into public.actual_costs (id, ledger_id, month, cost_type_id, amount_minor, currency, date, created_by)
   values ('80000000-0000-4000-8000-0000000000c1', '10000000-0000-4000-8000-00000000000a', '2026-10', '60000000-0000-4000-8000-00000000000a', 1, 'LKR', '2026-10-04', '00000000-0000-4000-8000-00000000000c') $$,
   '42501', null, 'a viewer cannot record costs');
+select throws_ok($$ insert into public.monthly_budgets (id, ledger_id, month, amount_minor, currency, created_by)
+  values ('a0000000-0000-4000-8000-0000000000c1', '10000000-0000-4000-8000-00000000000a', '2026-11', 1, 'LKR', '00000000-0000-4000-8000-00000000000c') $$,
+  '42501', null, 'a viewer cannot set budgets');
 update public.estimated_costs set amount_minor = 1 where id = '70000000-0000-4000-8000-00000000000a';
-update public.fixed_obligations set paid = true where id = '90000000-0000-4000-8000-00000000000a';
+update public.fixed_obligations set due_day = 1 where id = '90000000-0000-4000-8000-00000000000a';
+update public.monthly_budgets set amount_minor = 1 where id = 'a0000000-0000-4000-8000-00000000000a';
 reset role;
 select results_eq(
   $$ select (select amount_minor from public.estimated_costs where id = '70000000-0000-4000-8000-00000000000a'),
-            (select paid from public.fixed_obligations where id = '90000000-0000-4000-8000-00000000000a') $$,
-  $$ values (100000::bigint, false) $$,
+            (select due_day from public.fixed_obligations where id = '90000000-0000-4000-8000-00000000000a'),
+            (select amount_minor from public.monthly_budgets where id = 'a0000000-0000-4000-8000-00000000000a') $$,
+  $$ values (100000::bigint, 20, 300000::bigint) $$,
   'a viewer''s updates change nothing');
 
 -- Anonymous users get nothing at all.
@@ -100,6 +117,8 @@ select throws_ok($$ select count(*) from public.cost_types $$,
   '42501', null, 'anonymous users cannot read cost types');
 select throws_ok($$ select count(*) from public.actual_costs $$,
   '42501', null, 'anonymous users cannot read actual costs');
+select throws_ok($$ select count(*) from public.monthly_budgets $$,
+  '42501', null, 'anonymous users cannot read monthly budgets');
 reset role;
 
 select * from finish();

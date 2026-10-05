@@ -67,7 +67,7 @@ streams:
         FROM actual_costs
         WHERE ledger_id IN my_ledgers AND deleted_at IS NULL
       - |
-        SELECT id, ledger_id, month, cost_type_id, amount_minor, currency, due_day, paid,
+        SELECT id, ledger_id, month, cost_type_id, amount_minor, currency, due_day,
           created_at, updated_at
         FROM fixed_obligations
         WHERE ledger_id IN my_ledgers AND deleted_at IS NULL

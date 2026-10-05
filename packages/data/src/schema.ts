@@ -121,7 +121,6 @@ const fixedObligations = new Table(
     amount_minor: column.integer,
     currency: column.text,
     due_day: column.integer,
-    paid: column.integer, // 0 or 1 boolean
     created_at: column.text,
     updated_at: column.text,
   },
