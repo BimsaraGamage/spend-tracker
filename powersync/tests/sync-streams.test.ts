@@ -30,14 +30,24 @@ interface Ledger {
   readonly ledgerId: string;
   readonly accountId: string;
   readonly transactionId: string;
+  readonly tagId: string;
+  readonly fixedCostId: string;
+  readonly actualCostId: string;
 }
 
-/** A ledger with one account and one transaction, created by its owner. */
+/**
+ * A ledger with one row in every synced table, created by its owner: an
+ * account with a transaction, and a month's plan with a cost that pays its
+ * fixed cost.
+ */
 async function createLedger(owner: TestUser): Promise<Ledger> {
   const ledger = {
     ledgerId: uuidv7(),
     accountId: uuidv7(),
     transactionId: uuidv7(),
+    tagId: uuidv7(),
+    fixedCostId: uuidv7(),
+    actualCostId: uuidv7(),
   };
   await insertRow(owner, "ledgers", {
     id: ledger.ledgerId,
@@ -63,7 +73,7 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     created_by: owner.id,
   });
 
-  const tagId = uuidv7();
+  const tagId = ledger.tagId;
   const costTypeId = uuidv7();
   await insertRow(owner, "tags", {
     id: tagId,
@@ -89,8 +99,18 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     note: "Food budget",
     created_by: owner.id,
   });
+  await insertRow(owner, "fixed_obligations", {
+    id: ledger.fixedCostId,
+    ledger_id: ledger.ledgerId,
+    month: "2026-10",
+    cost_type_id: costTypeId,
+    amount_minor: 100000,
+    currency: "LKR",
+    due_day: 1,
+    created_by: owner.id,
+  });
   await insertRow(owner, "actual_costs", {
-    id: uuidv7(),
+    id: ledger.actualCostId,
     ledger_id: ledger.ledgerId,
     month: "2026-10",
     cost_type_id: costTypeId,
@@ -99,16 +119,15 @@ async function createLedger(owner: TestUser): Promise<Ledger> {
     tag_ids: [tagId],
     note: "Groceries",
     date: "2026-10-04",
+    fixed_obligation_id: ledger.fixedCostId,
     created_by: owner.id,
   });
-  await insertRow(owner, "fixed_obligations", {
+  await insertRow(owner, "monthly_budgets", {
     id: uuidv7(),
     ledger_id: ledger.ledgerId,
     month: "2026-10",
-    cost_type_id: costTypeId,
-    amount_minor: 100000,
+    amount_minor: 300000,
     currency: "LKR",
-    due_day: 1,
     created_by: owner.id,
   });
 
@@ -210,6 +229,15 @@ describe("Sync Streams", () => {
         description: "Groceries",
         created_by: alice.id,
       });
+      const cost = synced.get("actual_costs")?.get(ledger.actualCostId);
+      expect(cost).toMatchObject({
+        amount_minor: 50_000,
+        date: "2026-10-04",
+        fixed_obligation_id: ledger.fixedCostId,
+      });
+      // A tag list arrives as JSON text, which the app parses (D-175).
+      expect(typeof cost?.["tag_ids"]).toBe("string");
+      expect(JSON.parse(String(cost?.["tag_ids"]))).toEqual([ledger.tagId]);
     });
   });
 

@@ -31,6 +31,7 @@ describe("AppSchema", () => {
       ["estimated_costs", false],
       ["actual_costs", false],
       ["fixed_obligations", false],
+      ["monthly_budgets", false],
       ["upload_rejections", true],
     ]);
   });

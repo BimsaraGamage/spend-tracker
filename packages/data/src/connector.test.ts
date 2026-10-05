@@ -146,6 +146,65 @@ describe("uploadData", () => {
     expect(device.timesCompleted()).toBe(1);
   });
 
+  test("uploads a tag list as JSON, not as the text the device stores (D-175)", async () => {
+    const { connector, sent } = connectorWith([
+      new Response(null, { status: 201 }),
+      rowsChanged(1),
+    ]);
+    const device = deviceDatabase([
+      change(1, UpdateType.PUT, "actual_costs", "c-1", {
+        ledger_id: "l-1",
+        tag_ids: '["t-1","t-2"]',
+      }),
+      change(2, UpdateType.PATCH, "cost_types", "ct-1", { tag_ids: "[]" }),
+    ]);
+
+    await connector.uploadData(device.database);
+
+    expect(sent[0]?.body).toEqual({
+      id: "c-1",
+      ledger_id: "l-1",
+      tag_ids: ["t-1", "t-2"],
+    });
+    expect(sent[1]?.body).toEqual({ tag_ids: [] });
+    expect(device.executed).toEqual([]);
+    expect(device.timesCompleted()).toBe(1);
+  });
+
+  test("refuses a tag list that isn't JSON without sending it, and moves on (SYNC3)", async () => {
+    const { connector, sent } = connectorWith();
+    const device = deviceDatabase([
+      change(5, UpdateType.PUT, "cost_types", "ct-1", {
+        name: "Rent",
+        tag_ids: "Home, Essential",
+      }),
+      change(6, UpdateType.PATCH, "cost_types", "ct-2", { tag_ids: "[" }),
+    ]);
+
+    await connector.uploadData(device.database);
+
+    expect(sent).toEqual([]);
+    expect(device.executed.map(({ params }) => params.slice(0, 6))).toEqual([
+      [
+        "upload-5",
+        "cost_types",
+        "ct-1",
+        "PUT",
+        JSON.stringify({ name: "Rent", tag_ids: "Home, Essential" }),
+        "invalid_json",
+      ],
+      [
+        "upload-6",
+        "cost_types",
+        "ct-2",
+        "PATCH",
+        JSON.stringify({ tag_ids: "[" }),
+        "invalid_json",
+      ],
+    ]);
+    expect(device.timesCompleted()).toBe(1);
+  });
+
   test("an update that changes only server-maintained columns sends nothing", async () => {
     const { connector, sent } = connectorWith();
     const device = deviceDatabase([

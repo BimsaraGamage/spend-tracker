@@ -65,6 +65,7 @@ const tags = new Table(
   {
     ledger_id: column.text,
     name: column.text,
+    created_by: column.text,
     created_at: column.text,
     updated_at: column.text,
   },
@@ -76,6 +77,7 @@ const costTypes = new Table(
     ledger_id: column.text,
     name: column.text,
     tag_ids: column.text, // JSON array of UUIDs
+    created_by: column.text,
     created_at: column.text,
     updated_at: column.text,
   },
@@ -91,10 +93,11 @@ const estimatedCosts = new Table(
     currency: column.text,
     tag_ids: column.text, // JSON array of UUIDs
     note: column.text,
+    created_by: column.text,
     created_at: column.text,
     updated_at: column.text,
   },
-  { indexes: { ledger: ["ledger_id"] } },
+  { indexes: { ledger_month: ["ledger_id", "month"] } },
 );
 
 const actualCosts = new Table(
@@ -107,10 +110,19 @@ const actualCosts = new Table(
     tag_ids: column.text, // JSON array of UUIDs
     note: column.text,
     date: column.text,
+    /** The fixed cost this cost pays, or null (D-167). */
+    fixed_obligation_id: column.text,
+    created_by: column.text,
     created_at: column.text,
     updated_at: column.text,
   },
-  { indexes: { ledger: ["ledger_id"] } },
+  {
+    // Screens read a month of a ledger's costs, and a fixed cost's payments.
+    indexes: {
+      ledger_month: ["ledger_id", "month"],
+      fixed_obligation: ["fixed_obligation_id"],
+    },
+  },
 );
 
 const fixedObligations = new Table(
@@ -121,10 +133,24 @@ const fixedObligations = new Table(
     amount_minor: column.integer,
     currency: column.text,
     due_day: column.integer,
+    created_by: column.text,
     created_at: column.text,
     updated_at: column.text,
   },
-  { indexes: { ledger: ["ledger_id"] } },
+  { indexes: { ledger_month: ["ledger_id", "month"] } },
+);
+
+const monthlyBudgets = new Table(
+  {
+    ledger_id: column.text,
+    month: column.text,
+    amount_minor: column.integer,
+    currency: column.text,
+    created_by: column.text,
+    created_at: column.text,
+    updated_at: column.text,
+  },
+  { indexes: { ledger_month: ["ledger_id", "month"] } },
 );
 
 /**
@@ -155,6 +181,7 @@ export const AppSchema = new Schema({
   estimated_costs: estimatedCosts,
   actual_costs: actualCosts,
   fixed_obligations: fixedObligations,
+  monthly_budgets: monthlyBudgets,
   upload_rejections: uploadRejections,
 });
 
