@@ -1,319 +1,423 @@
 import { describe, expect, it } from "vitest";
-import type { Money } from "../money/money";
+
+import type { LocalDate } from "../dates/local-date";
 import type { Uuid } from "../ids/uuid";
-import type { CostTypeId, FixedObligation, MonthKey } from "./types";
+import type { Money } from "../money/money";
 import {
-  calculateForecast,
-  forecastGraphPoints,
+  type Forecast,
   type ForecastInput,
+  forecastMonth,
+  unpaidAmount,
 } from "./forecast";
+import type {
+  ActualCost,
+  CostTypeId,
+  FixedObligation,
+  FixedObligationId,
+  MonthKey,
+} from "./types";
 
-// ── Test helpers ─────────────────────────────────────────────────────────
-
+// October 2026 has 31 days.
 const month = "2026-10" as MonthKey;
 const lkr = (amountMinor: number): Money => ({ amountMinor, currency: "LKR" });
-const typeRent = "type-rent" as unknown as CostTypeId;
+const date = (day: number) =>
+  `${month}-${String(day).padStart(2, "0")}` as LocalDate;
+const MAX = Number.MAX_SAFE_INTEGER;
 
-function uuid(label: string): Uuid {
-  return label as unknown as Uuid;
+let nextId = 0;
+
+/** An actual cost on a day of October; with `pays`, a payment of that fixed cost. */
+function spent(
+  amount: number,
+  day: number,
+  pays: FixedObligation | null = null,
+): ActualCost {
+  return {
+    id: `cost-${String(++nextId)}` as Uuid,
+    month,
+    costTypeId: "food" as CostTypeId,
+    amount: lkr(amount),
+    tagIds: [],
+    note: "",
+    date: date(day),
+    fixedObligationId: pays?.id ?? null,
+  };
 }
 
-function makeObligation(
-  id: string,
-  amount: number,
-  dueDay: number,
-  paid = false,
-): FixedObligation {
+/** A fixed cost in October. */
+function fixed(amount: number, dueDay: number): FixedObligation {
   return {
-    id: uuid(id),
+    id: `fixed-${String(++nextId)}` as FixedObligationId,
     month,
-    costTypeId: typeRent,
+    costTypeId: "housing" as CostTypeId,
     amount: lkr(amount),
     dueDay,
-    paid,
   };
 }
 
-function makeInput(overrides: Partial<ForecastInput> = {}): ForecastInput {
+interface Scenario {
+  readonly today: number;
+  readonly budget?: number;
+  readonly actualCosts?: readonly ActualCost[];
+  readonly fixedCosts?: readonly FixedObligation[];
+  readonly payments?: readonly ActualCost[];
+}
+
+function inputFor(scenario: Scenario): ForecastInput {
   return {
-    allocation: lkr(100000),
-    actualSpent: lkr(20000),
-    unpaidObligations: [],
-    currentDay: 10,
-    totalDays: 31,
-    observedVariableDays: 10,
-    variableSpent: lkr(20000),
-    ...overrides,
+    month,
+    today: date(scenario.today),
+    budget: lkr(scenario.budget ?? 1000),
+    actualCosts: scenario.actualCosts ?? [],
+    fixedCosts: scenario.fixedCosts ?? [],
+    payments: scenario.payments ?? [],
   };
 }
 
-// ── Basic forecast (FR-FORECAST-1) ───────────────────────────────────────
+function forecast(scenario: Scenario): Forecast {
+  const result = forecastMonth(inputFor(scenario));
+  if (!result.ok) expect.unreachable(`no forecast: ${result.error}`);
+  return result.value;
+}
 
-describe("calculateForecast", () => {
-  it("projects exhaustion based on variable spending rate", () => {
-    // Allocation: 100,000, spent: 20,000, remaining: 80,000.
-    // Daily rate: 20,000 / 10 = 2,000/day.
-    // Days of variable left: 80,000 / 2,000 = 40.
-    // Projected exhaustion: day 10 + 40 = day 50 → beyond month (31 days).
-    const result = calculateForecast(makeInput());
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.status).toBe("within-budget");
-    }
+/** The projected budget left at the end of `day`, in minor units. */
+function projectedOn(result: Forecast, day: number): number | undefined {
+  return result.projected.find((point) => point.day === day)?.remaining
+    .amountMinor;
+}
+
+describe("AC-06: fixed costs can determine exhaustion", () => {
+  // A budget of 1,000, variable spending of 200 by day 10 (20 a day), and
+  // rent of 900 due on day 20.
+  const rent = fixed(900, 20);
+  const scenario = (payments: readonly ActualCost[] = []): Scenario => ({
+    today: 10,
+    actualCosts: [spent(200, 4), ...payments],
+    fixedCosts: [rent],
+    payments,
   });
 
-  it("detects already-exhausted allocation", () => {
-    const result = calculateForecast(makeInput({ actualSpent: lkr(100000) }));
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.status).toBe("exhausted");
-    }
+  it("runs out on the due day of a fixed cost larger than what's left", () => {
+    const result = forecast(scenario());
+    expect(result.outcome).toEqual({ kind: "runs-out", day: 20 });
+    expect(result.upcoming).toEqual(lkr(900));
+    // The graph drops on day 20: by the rent plus a day's spending.
+    expect(projectedOn(result, 19)).toBe(620);
+    expect(projectedOn(result, 20)).toBe(-300);
   });
 
-  it("detects already-exceeded allocation", () => {
-    const result = calculateForecast(makeInput({ actualSpent: lkr(120000) }));
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.status).toBe("exhausted");
-    }
+  it("runs out on a fixed cost's due day even without variable spending", () => {
+    const result = forecast({ today: 10, fixedCosts: [fixed(1000, 20)] });
+    expect(result.pace).toMatchObject({ kind: "measured", daily: lkr(0) });
+    expect(result.outcome).toEqual({ kind: "runs-out", day: 20 });
   });
 
-  it("reports insufficient data with few observations (AC-07)", () => {
-    const result = calculateForecast(makeInput({ observedVariableDays: 2 }));
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.status).toBe("insufficient-data");
-    }
+  it("counts a fixed cost paid in full as spent, and no longer as upcoming", () => {
+    const result = forecast(scenario([spent(900, 10, rent)]));
+    expect(result.spent).toEqual(lkr(1100));
+    expect(result.remaining).toEqual(lkr(-100));
+    expect(result.upcoming).toEqual(lkr(0));
+    expect(result.outcome).toEqual({ kind: "used-up" });
+    // Only a day's spending, 20, on day 20: no drop for the rent.
+    expect(projectedOn(result, 19)).toBe(-280);
+    expect(projectedOn(result, 20)).toBe(-300);
   });
 
-  it("projects exhaustion within the month", () => {
-    // Allocation: 100,000, spent: 50,000, remaining: 50,000.
-    // Daily rate: 50,000 / 10 = 5,000/day.
-    // Days left: 50,000 / 5,000 = 10.
-    // Projected exhaustion: day 10 + 10 = day 20.
-    const result = calculateForecast(
-      makeInput({
-        actualSpent: lkr(50000),
-        variableSpent: lkr(50000),
-      }),
+  it("keeps the unpaid rest of a partly paid fixed cost on its due day", () => {
+    const result = forecast(scenario([spent(400, 10, rent)]));
+    expect(result.spent).toEqual(lkr(600));
+    expect(result.upcoming).toEqual(lkr(500));
+    // The payment isn't variable spending: the pace stays 20 a day.
+    expect(result.pace).toMatchObject({ spent: lkr(200), daily: lkr(20) });
+    expect(projectedOn(result, 19)).toBe(220);
+    expect(projectedOn(result, 20)).toBe(-300);
+  });
+
+  it("counts an unpaid fixed cost past its due day as due today", () => {
+    const result = forecast({ ...scenario(), today: 25 });
+    expect(result.actual.at(-1)).toEqual({ day: 25, remaining: lkr(800) });
+    expect(result.projected[0]).toEqual({ day: 25, remaining: lkr(-100) });
+    expect(result.outcome).toEqual({ kind: "runs-out", day: 25 });
+  });
+
+  it.each([
+    ["with a pace", 4],
+    ["before the pace is known", 2],
+  ])(
+    "runs out on day 20, not day 5, with fixed costs of 100 and 950 (%s)",
+    (_label, today) => {
+      const result = forecast({
+        today,
+        fixedCosts: [fixed(100, 5), fixed(950, 20)],
+      });
+      expect(projectedOn(result, 5)).toBe(900);
+      expect(result.outcome).toEqual({ kind: "runs-out", day: 20 });
+    },
+  );
+});
+
+describe("AC-07: forecast pace and limitations", () => {
+  // Variable spending of 90 over the first 3 days, with 100 of budget left.
+  const ac07: Scenario = {
+    today: 3,
+    budget: 190,
+    actualCosts: [spent(30, 1), spent(30, 2), spent(30, 3)],
+  };
+
+  it("runs out on the 4th following day at a pace of 30 a day", () => {
+    const result = forecast(ac07);
+    expect(result.pace).toEqual({
+      kind: "measured",
+      days: 3,
+      spent: lkr(90),
+      daily: lkr(30),
+    });
+    expect(result.remaining).toEqual(lkr(100));
+    expect(result.projected.slice(0, 5)).toEqual(
+      [100, 70, 40, 10, -20].map((left, index) => ({
+        day: 3 + index,
+        remaining: lkr(left),
+      })),
     );
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.status).toBe("projected");
-      if (result.value.status === "projected") {
-        expect(result.value.exhaustionDay).toBe(20);
-      }
-    }
+    expect(result.outcome).toEqual({ kind: "runs-out", day: 7 });
   });
 
-  it("rejects mixed currencies", () => {
-    const result = calculateForecast(
-      makeInput({ actualSpent: { amountMinor: 20000, currency: "USD" } }),
-    );
-    expect(result).toEqual({ ok: false, error: "currency-mismatch" });
+  it("counts days without spending towards the pace", () => {
+    const result = forecast({ ...ac07, actualCosts: [spent(90, 1)] });
+    expect(result.pace).toMatchObject({ days: 3, daily: lkr(30) });
+    expect(result.outcome).toEqual({ kind: "runs-out", day: 7 });
+  });
+
+  it("projects with the exact average, rounding only each point", () => {
+    // 100 over 3 days: 33.33 a day. Rounding the pace to 33 first would
+    // leave 1 on day 6 and move the run-out day to day 7.
+    const result = forecast({
+      today: 3,
+      budget: 200,
+      actualCosts: [spent(100, 3)],
+    });
+    expect(result.pace).toMatchObject({ daily: lkr(33) });
+    expect(projectedOn(result, 4)).toBe(67);
+    expect(projectedOn(result, 5)).toBe(34);
+    expect(result.outcome).toEqual({ kind: "runs-out", day: 6 });
+  });
+
+  it("rounds the daily pace it reports halves up", () => {
+    const result = forecast({ today: 6, actualCosts: [spent(15, 1)] });
+    expect(result.pace).toMatchObject({ spent: lkr(15), daily: lkr(3) });
+  });
+
+  it("says there isn't enough data before day 3, but still projects fixed costs", () => {
+    const result = forecast({
+      today: 2,
+      actualCosts: [spent(50, 1)],
+      fixedCosts: [fixed(300, 15)],
+    });
+    expect(result.pace).toEqual({
+      kind: "not-enough-data",
+      days: 2,
+      daysNeeded: 3,
+    });
+    expect(result.outcome).toEqual({ kind: "not-enough-data" });
+    expect(projectedOn(result, 14)).toBe(950);
+    expect(projectedOn(result, 15)).toBe(650);
+  });
+
+  it("says what's left at the month's end when the budget lasts", () => {
+    const result = forecast({
+      today: 10,
+      budget: 10_000,
+      actualCosts: [spent(1000, 5)],
+    });
+    expect(result.outcome).toEqual({ kind: "lasts", remaining: lkr(6900) });
+  });
+
+  it("shows a budget that's already used up instead of a date", () => {
+    const result = forecast({ today: 5, actualCosts: [spent(1000, 2)] });
+    expect(result.remaining).toEqual(lkr(0));
+    expect(result.outcome).toEqual({ kind: "used-up" });
   });
 });
 
-// ── Fixed obligations (AC-06) ────────────────────────────────────────────
-
-describe("fixed obligations (AC-06)", () => {
-  it("projects exhaustion on fixed obligation due day", () => {
-    // AC-06: Allocation 100,000, actual 20,000, remaining 80,000.
-    // Unpaid obligation of 90,000 on day 20.
-    // After obligation: 80,000 - 90,000 = -10,000 → exhaustion on day 20.
-    const result = calculateForecast(
-      makeInput({
-        allocation: lkr(100000),
-        actualSpent: lkr(20000),
-        variableSpent: lkr(20000),
-        unpaidObligations: [makeObligation("o1", 90000, 20)],
-        currentDay: 10,
-        observedVariableDays: 10,
-      }),
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.status).toBe("projected");
-      if (result.value.status === "projected") {
-        expect(result.value.exhaustionDay).toBe(20);
-      }
-    }
+describe("known costs and the graph", () => {
+  it("projects a cost dated later this month on its date, without counting it as spent", () => {
+    const result = forecast({
+      today: 10,
+      actualCosts: [spent(100, 5), spent(500, 15)],
+    });
+    expect(result.spent).toEqual(lkr(100));
+    expect(result.upcoming).toEqual(lkr(500));
+    expect(projectedOn(result, 14)).toBe(860);
+    expect(projectedOn(result, 15)).toBe(350);
   });
 
-  it("does not double-count a paid obligation", () => {
-    // A paid obligation should not be in the unpaid list at all.
-    // The caller is responsible for filtering. This test confirms
-    // that only unpaid obligations affect the forecast.
-    const result = calculateForecast(
-      makeInput({
-        allocation: lkr(100000),
-        actualSpent: lkr(20000),
-        variableSpent: lkr(20000),
-        unpaidObligations: [], // obligation already paid
-      }),
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      expect(result.value.status).toBe("within-budget");
-    }
-  });
-});
-
-// ── Forecast graph points ────────────────────────────────────────────────
-
-describe("forecastGraphPoints", () => {
-  it("generates points from day 0 through projected days", () => {
-    const result = forecastGraphPoints(makeInput());
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      const points = result.value;
-      // Should start at day 0 with full allocation.
-      expect(points[0]).toEqual({ day: 0, remaining: lkr(100000) });
-      // Should include current day.
-      const currentDayPoint = points.find((p) => p.day === 10);
-      expect(currentDayPoint).toBeDefined();
-      if (currentDayPoint) {
-        // Remaining should be allocation - actualSpent = 80,000.
-        expect(currentDayPoint.remaining).toEqual(lkr(80000));
-      }
-      // Should extend into future days.
-      expect(points.length).toBeGreaterThan(11);
-    }
-  });
-
-  it("shows step-down on fixed obligation due date", () => {
-    const result = forecastGraphPoints(
-      makeInput({
-        unpaidObligations: [makeObligation("o1", 30000, 20)],
-      }),
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      const points = result.value;
-      const day19 = points.find((p) => p.day === 19);
-      const day20 = points.find((p) => p.day === 20);
-      expect(day19).toBeDefined();
-      expect(day20).toBeDefined();
-      if (day19 && day20) {
-        // Day 20 should show a bigger drop than a normal day due to the obligation.
-        const normalDailyDrop = 2000; // 20,000 / 10 days
-        const day19to20Drop =
-          day19.remaining.amountMinor - day20.remaining.amountMinor;
-        // The drop should be approximately normalDailyDrop + 30,000.
-        expect(day19to20Drop).toBeGreaterThan(normalDailyDrop);
-      }
-    }
-  });
-
-  it("stops at zero remaining", () => {
-    const result = forecastGraphPoints(
-      makeInput({
-        allocation: lkr(25000),
-        actualSpent: lkr(20000),
-        variableSpent: lkr(20000),
-        // Remaining: 5,000. Daily rate: 2,000. Should exhaust in ~2-3 days.
-      }),
-    );
-    expect(result.ok).toBe(true);
-    if (result.ok) {
-      const points = result.value;
-      const lastPoint = points[points.length - 1];
-      expect(lastPoint).toBeDefined();
-      if (!lastPoint) return;
-      expect(lastPoint.remaining.amountMinor).toBe(0);
-      // Should stop well before day 31.
-      expect(lastPoint.day).toBeLessThan(20);
-    }
-  });
-
-  it("rejects mixed currencies", () => {
-    const result = forecastGraphPoints(
-      makeInput({ actualSpent: { amountMinor: 20000, currency: "USD" } }),
-    );
-    expect(result).toEqual({ ok: false, error: "currency-mismatch" });
-  });
-
-  it("rejects mixed currency in variableSpent", () => {
-    const result = forecastGraphPoints(
-      makeInput({ variableSpent: { amountMinor: 20000, currency: "USD" } }),
-    );
-    expect(result).toEqual({ ok: false, error: "currency-mismatch" });
-  });
-
-  it("rejects mixed currency in obligations", () => {
-    const result = forecastGraphPoints(
-      makeInput({
-        unpaidObligations: [
-          {
-            id: "o1" as Uuid,
-            month: "2026-10" as MonthKey,
-            costTypeId: "t1" as CostTypeId,
-            amount: { amountMinor: 1000, currency: "USD" },
-            dueDay: 15,
-            paid: false,
-          },
-        ],
-      }),
-    );
-    expect(result).toEqual({ ok: false, error: "currency-mismatch" });
-  });
-});
-
-describe("calculateForecast additional branches", () => {
-  it("projects exhaustion based on obligation due day", () => {
-    const input = {
-      allocation: lkr(100000),
-      currentDay: 10,
-      totalDays: 31,
-      actualSpent: lkr(50000),
-      variableSpent: lkr(30000),
-      observedVariableDays: 10,
-      // Remaining is 50,000
-      // Variable rate is 3,000/day
-      // Obligation is 40,000 on day 15
-      // by day 15, 5 days of variable spending = 15,000
-      // remaining before obligation = 35,000
-      // deduct 40,000 -> -5,000 (exhausts on day 15 due to obligation)
-      unpaidObligations: [makeObligation("o1", 40000, 15)],
+  it("counts a payment made the month before towards its fixed cost", () => {
+    const rent = fixed(900, 5);
+    const paidEarly: ActualCost = {
+      ...spent(900, 1, rent),
+      month: "2026-09" as MonthKey,
+      date: "2026-09-30" as LocalDate,
     };
-    const res = calculateForecast(input);
-    expect(res).toEqual({
-      ok: true,
-      value: {
-        status: "projected",
-        exhaustionDay: 15,
-        message:
-          "Projected exhaustion on day 15 when a fixed obligation is due.",
-        dailyRate: { amountMinor: 3000, currency: "LKR" },
-      },
+    const result = forecast({
+      today: 10,
+      fixedCosts: [rent],
+      payments: [paidEarly],
+    });
+    expect(result.spent).toEqual(lkr(0));
+    expect(result.upcoming).toEqual(lkr(0));
+    expect(result.outcome).toEqual({ kind: "lasts", remaining: lkr(1000) });
+  });
+
+  it("moves a due day past the month's end to its last day", () => {
+    const february = "2026-02" as MonthKey;
+    const result = forecastMonth({
+      month: february,
+      today: "2026-02-10" as LocalDate,
+      budget: lkr(1000),
+      actualCosts: [],
+      fixedCosts: [{ ...fixed(1200, 31), month: february }],
+      payments: [],
+    });
+    expect(result.ok && result.value.projected.at(-1)).toEqual({
+      day: 28,
+      remaining: lkr(-200),
+    });
+    expect(result.ok && result.value.outcome).toEqual({
+      kind: "runs-out",
+      day: 28,
     });
   });
 
-  it("projects exhaustion before obligation due date if variable spending is high", () => {
-    const input = {
-      allocation: lkr(100000),
-      currentDay: 10,
-      totalDays: 31,
-      actualSpent: lkr(50000),
-      variableSpent: lkr(60000), // rate: 6000/day
-      observedVariableDays: 10,
-      unpaidObligations: [
-        makeObligation("o1", 5000, 20), // Due in 10 days
-      ],
-    };
-    // rate: 6000. days until due: 10. spentByDue = 60000.
-    // runningRemaining = 50000. 60000 >= 50000!
-    // exhaustDay = 10 + floor(50000/6000) = 10 + 8 = 18.
-    const res = calculateForecast(input);
-    expect(res).toEqual({
+  it("draws what was left at the end of each day so far", () => {
+    const result = forecast({
+      today: 6,
+      actualCosts: [spent(100, 2), spent(50, 5)],
+    });
+    expect(result.actual).toEqual(
+      [1000, 1000, 900, 900, 900, 850, 850].map((left, day) => ({
+        day,
+        remaining: lkr(left),
+      })),
+    );
+  });
+
+  it("projects to the month's end, below zero", () => {
+    const result = forecast({
+      today: 3,
+      budget: 190,
+      actualCosts: [spent(90, 1)],
+    });
+    expect(result.projected).toHaveLength(29);
+    // 100 left, minus 28 days at 30 a day.
+    expect(result.projected.at(-1)).toEqual({ day: 31, remaining: lkr(-740) });
+  });
+});
+
+describe("unpaidAmount", () => {
+  const rent = fixed(900, 20);
+
+  it("is the fixed cost minus its payments, ignoring other fixed costs' payments", () => {
+    const payments = [
+      spent(400, 10, rent),
+      spent(100, 11, rent),
+      spent(50, 12, fixed(50, 1)),
+    ];
+    expect(unpaidAmount(rent, payments)).toEqual({ ok: true, value: lkr(400) });
+  });
+
+  it("is never below zero", () => {
+    expect(unpaidAmount(rent, [spent(1000, 10, rent)])).toEqual({
       ok: true,
-      value: {
-        status: "projected",
-        exhaustionDay: 18,
-        message:
-          "Projected exhaustion on day 18 based on variable spending rate.",
-        dailyRate: { amountMinor: 6000, currency: "LKR" },
+      value: lkr(0),
+    });
+  });
+
+  it("refuses payments it can't add up exactly", () => {
+    const inDollars = {
+      ...spent(1, 10, rent),
+      amount: { amountMinor: 1, currency: "USD" as const },
+    };
+    expect(unpaidAmount(rent, [inDollars])).toEqual({
+      ok: false,
+      error: "currency-mismatch",
+    });
+    const large = fixed(MAX, 20);
+    expect(unpaidAmount(large, [spent(-MAX, 10, large)])).toEqual({
+      ok: false,
+      error: "out-of-range",
+    });
+  });
+});
+
+describe("input the forecast refuses", () => {
+  const rent = fixed(900, 20);
+
+  it.each<[string, Partial<ForecastInput>, string]>([
+    [
+      "today in another month",
+      { today: "2026-11-01" as LocalDate },
+      "outside-month",
+    ],
+    [
+      "a cost filed under another month",
+      { actualCosts: [{ ...spent(10, 1), month: "2026-09" as MonthKey }] },
+      "outside-month",
+    ],
+    [
+      "a cost dated in another month",
+      { actualCosts: [{ ...spent(10, 1), date: "2026-11-01" as LocalDate }] },
+      "outside-month",
+    ],
+    [
+      "a cost on a day that doesn't exist",
+      { actualCosts: [{ ...spent(10, 1), date: "2026-10-32" as LocalDate }] },
+      "outside-month",
+    ],
+    [
+      "a fixed cost of another month",
+      { fixedCosts: [{ ...rent, month: "2026-11" as MonthKey }] },
+      "outside-month",
+    ],
+    [
+      "an amount in another currency",
+      {
+        actualCosts: [
+          { ...spent(10, 1), amount: { amountMinor: 10, currency: "USD" } },
+        ],
       },
+      "currency-mismatch",
+    ],
+    ["a budget of zero", { budget: lkr(0) }, "not-positive"],
+    ["a negative cost", { actualCosts: [spent(-10, 1)] }, "not-positive"],
+    [
+      "a fraction of a minor unit",
+      { actualCosts: [spent(1.5, 1)] },
+      "out-of-range",
+    ],
+    ["due day 0", { fixedCosts: [fixed(10, 0)] }, "invalid-due-day"],
+    ["due day 32", { fixedCosts: [fixed(10, 32)] }, "invalid-due-day"],
+    [
+      "a fractional due day",
+      { fixedCosts: [fixed(10, 1.5)] },
+      "invalid-due-day",
+    ],
+    [
+      "costs adding up beyond exact amounts",
+      { actualCosts: [spent(MAX, 1), spent(MAX, 2)] },
+      "out-of-range",
+    ],
+    [
+      "payments adding up beyond exact amounts",
+      {
+        fixedCosts: [rent],
+        payments: [spent(MAX, 1, rent), spent(MAX, 2, rent)],
+      },
+      "out-of-range",
+    ],
+  ])("refuses %s", (_label, change, error) => {
+    expect(forecastMonth({ ...inputFor({ today: 10 }), ...change })).toEqual({
+      ok: false,
+      error,
     });
   });
 });

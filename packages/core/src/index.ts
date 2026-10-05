@@ -32,26 +32,36 @@ export {
   type CostTypeId,
   type EstimatedCost,
   type FixedObligation,
+  type FixedObligationId,
   type MonthKey,
+  type MonthlyBudget,
   type Tag,
   type TagId,
 } from "./costs/types";
 export { daysInMonth, monthKeyFrom, parseMonthKey } from "./costs/month-key";
 export {
-  effectiveTags,
-  isUntagged,
-  matchesTags,
-  sumActualByType,
+  type CostTypeTotals,
+  costTypeTotals,
   sumAllActual,
   sumAllEstimated,
-  sumByTags,
-  sumEstimatedByType,
-  sumUntagged,
-} from "./costs/arithmetic";
+} from "./costs/totals";
 export {
-  calculateForecast,
+  matchesTags,
+  sumMatchingTags,
+  type TaggedCost,
+  type TagMatch,
+  type TagReport,
+  tagReport,
+  tagsForNewCost,
+} from "./costs/tags";
+export {
+  type Forecast,
+  type ForecastError,
   type ForecastInput,
+  forecastMonth,
+  type ForecastOutcome,
   type ForecastPoint,
-  type ForecastResult,
-  forecastGraphPoints,
+  MIN_PACE_DAYS,
+  type Pace,
+  unpaidAmount,
 } from "./costs/forecast";
