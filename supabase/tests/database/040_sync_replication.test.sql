@@ -59,7 +59,7 @@ select ok((select not puballtables and pubinsert and pubupdate and pubdelete
   'the publication lists its tables, and publishes inserts, updates and deletes');
 select set_eq(
   $$ select format('%I.%I', schemaname, tablename) from pg_publication_tables where pubname = 'powersync' $$,
-  array['public.ledgers', 'public.ledger_members', 'public.accounts', 'public.transactions', 'public.tags', 'public.cost_types', 'public.estimated_costs', 'public.actual_costs', 'public.fixed_obligations'],
+  array['public.ledgers', 'public.ledger_members', 'public.accounts', 'public.transactions', 'public.tags', 'public.cost_types', 'public.estimated_costs', 'public.actual_costs', 'public.fixed_obligations', 'public.monthly_budgets'],
   'exactly the ledger tables are published; internal tables such as audit.events are not (SYNC6)');
 select is(pg_temp.missing_sync_columns(), 0::bigint,
   'every published table has the synced-table columns (SYNC1)');

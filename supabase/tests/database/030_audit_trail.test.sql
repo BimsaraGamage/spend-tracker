@@ -2,7 +2,7 @@
 -- neither read nor alter it (NFR-SEC-5, DATA7).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(10);
+select plan(12);
 
 insert into auth.users (id, email) values ('00000000-0000-4000-8000-00000000000a', 'a@example.test');
 
@@ -55,6 +55,34 @@ select results_eq($$ select actor, action from audit.events where action = 'dele
   'changes without a signed-in user are recorded without an actor');
 select ok((select old_row is not null and new_row is null from audit.events where action = 'delete'),
   'a delete records the row as it was');
+
+-- Synced tables hold ledger data, so each must record every change (DATA7).
+create function pg_temp.unaudited_synced_tables()
+returns bigint
+language sql
+as $$
+  select count(*)
+  from pg_publication_tables t
+  where t.pubname = 'powersync'
+    and not exists (
+      select
+      from pg_trigger tr
+      where tr.tgrelid = format('%I.%I', t.schemaname, t.tablename)::regclass
+        and tr.tgfoid = 'audit.record_change()'::regprocedure
+        -- After each inserted, deleted and updated row: bits 1, 4, 8 and 16 set, 2 (before) not.
+        and tr.tgtype & 31 = 29
+    )
+$$;
+select is(pg_temp.unaudited_synced_tables(), 0::bigint,
+  'every synced table records its changes in the audit trail');
+
+-- The guard must be able to fail.
+create table public.audit_probe (id uuid primary key);
+alter publication powersync add table public.audit_probe;
+select is(pg_temp.unaudited_synced_tables(), 1::bigint,
+  'the audit guard detects a synced table without the audit trigger');
+alter publication powersync drop table public.audit_probe;
+drop table public.audit_probe;
 
 select * from finish();
 rollback;
