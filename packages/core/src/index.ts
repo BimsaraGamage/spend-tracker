@@ -34,6 +34,7 @@ export {
   type FixedObligation,
   type FixedObligationId,
   type MonthKey,
+  type MonthlyBudget,
   type Tag,
   type TagId,
 } from "./costs/types";
@@ -54,9 +55,13 @@ export {
   tagsForNewCost,
 } from "./costs/tags";
 export {
-  calculateForecast,
+  type Forecast,
+  type ForecastError,
   type ForecastInput,
+  forecastMonth,
+  type ForecastOutcome,
   type ForecastPoint,
-  type ForecastResult,
-  forecastGraphPoints,
+  MIN_PACE_DAYS,
+  type Pace,
+  unpaidAmount,
 } from "./costs/forecast";

@@ -88,20 +88,27 @@ export interface ActualCost {
   readonly fixedObligationId: FixedObligationId | null;
 }
 
-// ── Fixed obligation (FR-FORECAST-2) ─────────────────────────────────────
+// ── Fixed cost (FR-FORECAST-2) ───────────────────────────────────────────
 
 /**
- * A known upcoming fixed cost with a due date within the month (P-05).
- *
- * Fixed obligations are projected separately from variable spending.
- * When matched to an actual payment, the obligation's unpaid remainder
- * drops from the forecast (AC-06).
+ * A known cost with a due day in its month, such as rent (D-167). It's paid
+ * by the actual costs recorded against it, fully or in part; only the
+ * unpaid remainder is projected.
  */
 export interface FixedObligation {
-  readonly id: Uuid;
+  readonly id: FixedObligationId;
   readonly month: MonthKey;
   readonly costTypeId: CostTypeId;
   readonly amount: Money;
-  readonly dueDay: number; // 1–31, clamped to the month's last day
-  readonly paid: boolean;
+  /** 1–31. A day past the month's end means its last day. */
+  readonly dueDay: number;
+}
+
+// ── Monthly budget (FR-PLAN-3) ───────────────────────────────────────────
+
+/** What the user allows for a month's spending: the amount the forecast tracks (D-166). */
+export interface MonthlyBudget {
+  readonly id: Uuid;
+  readonly month: MonthKey;
+  readonly amount: Money;
 }
