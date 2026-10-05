@@ -1,12 +1,16 @@
 /**
- * Core types for the monthly cost-planning feature (FR-PLAN, FR-TAG, FR-ACT).
+ * Core types for monthly cost planning (FR-PLAN, FR-TAG, FR-ACT,
+ * FR-FORECAST).
  *
- * All money amounts use the `Money` type from `../money/money` (DATA1).
- * IDs are branded strings, following the same pattern as `Uuid`.
+ * Amounts use `Money` (DATA1). They are positive and in the ledger's base
+ * currency (FR-PLAN-4); the database enforces both, and the calculations
+ * check them again. IDs are branded strings, following the pattern of
+ * `Uuid`.
  */
 
-import type { Money } from "../money/money";
+import type { LocalDate } from "../dates/local-date";
 import type { Uuid } from "../ids/uuid";
+import type { Money } from "../money/money";
 
 // ── Identifiers ──────────────────────────────────────────────────────────
 
@@ -15,6 +19,9 @@ export type CostTypeId = Uuid & { readonly __costType: true };
 
 /** A user-defined label applied to costs and cost types. */
 export type TagId = Uuid & { readonly __tag: true };
+
+/** A fixed cost, such as rent, that actual costs can pay. */
+export type FixedObligationId = Uuid & { readonly __fixedObligation: true };
 
 // ── Month key ────────────────────────────────────────────────────────────
 
@@ -27,16 +34,17 @@ export type TagId = Uuid & { readonly __tag: true };
  */
 export type MonthKey = string & { readonly __brand: "MonthKey" };
 
-// ── Cost type ────────────────────────────────────────────────────────────
+// ── Cost type and tags ───────────────────────────────────────────────────
 
-/** A named category of spending. Tags on the type are inherited by its costs (P-02). */
+/**
+ * A named category of spending. Its tags are copied onto each new cost of
+ * the type when the cost is recorded (FR-TAG-2, D-168).
+ */
 export interface CostType {
   readonly id: CostTypeId;
   readonly name: string;
   readonly tagIds: readonly TagId[];
 }
-
-// ── Tag ──────────────────────────────────────────────────────────────────
 
 /** A user-defined label. */
 export interface Tag {
@@ -47,17 +55,15 @@ export interface Tag {
 // ── Estimated cost ───────────────────────────────────────────────────────
 
 /**
- * A planned cost entry within a month (FR-PLAN-1).
- *
- * One or more estimated costs per type are summed into the type's
- * estimated subtotal (P-01, recommended). An estimated cost may
- * carry its own tags in addition to those inherited from its type.
+ * A planned item within a month (FR-PLAN-1, D-170). A cost type's estimate
+ * is the sum of its planned items.
  */
 export interface EstimatedCost {
   readonly id: Uuid;
   readonly month: MonthKey;
   readonly costTypeId: CostTypeId;
   readonly amount: Money;
+  /** The tags recorded with the item: its own and its type's at the time (D-168). */
   readonly tagIds: readonly TagId[];
   readonly note: string;
 }
@@ -65,20 +71,21 @@ export interface EstimatedCost {
 // ── Actual cost ──────────────────────────────────────────────────────────
 
 /**
- * A recorded real expense (FR-ACT-1).
- *
- * Actual costs reference a cost type, which may have been created on the
- * fly during entry (FR-ACT-2). They are separate from estimates; an
- * actual cost without a matching estimate is shown as unplanned (P-01).
+ * A recorded expense (FR-ACT-1). An actual cost without a planned item of
+ * its type is unplanned (FR-ACT-3).
  */
 export interface ActualCost {
   readonly id: Uuid;
   readonly month: MonthKey;
   readonly costTypeId: CostTypeId;
   readonly amount: Money;
+  /** The tags recorded with the cost: its own and its type's at the time (D-168). */
   readonly tagIds: readonly TagId[];
   readonly note: string;
-  readonly date: string; // LocalDate in "YYYY-MM-DD" format (DATA3)
+  /** The day it was spent, in the ledger's time zone (DATA3). */
+  readonly date: LocalDate;
+  /** The fixed cost this cost pays, if any (D-167). */
+  readonly fixedObligationId: FixedObligationId | null;
 }
 
 // ── Fixed obligation (FR-FORECAST-2) ─────────────────────────────────────
