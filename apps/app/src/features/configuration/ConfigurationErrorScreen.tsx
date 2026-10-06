@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
-import { StyleSheet, Text, View } from "react-native";
+import { View } from "react-native";
 
+import { Text } from "../../components/ui/text";
 import type { ConfigProblem } from "../../lib/config";
 
 /**
@@ -14,22 +15,14 @@ export function ConfigurationErrorScreen({
 }) {
   const { t } = useTranslation();
   return (
-    <View style={styles.container}>
-      <Text accessibilityRole="header" style={styles.title}>
-        {t("configuration.title")}
-      </Text>
-      <Text style={styles.text}>{t("configuration.description")}</Text>
+    <View className="bg-background flex-1 justify-center gap-2 p-4">
+      <Text variant="h3">{t("configuration.title")}</Text>
+      <Text>{t("configuration.description")}</Text>
       {problems.map(({ variable, reason }) => (
-        <Text key={`${variable}:${reason}`} style={styles.text}>
+        <Text key={`${variable}:${reason}`}>
           {t(`configuration.problems.${reason}`, { variable })}
         </Text>
       ))}
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", gap: 8, padding: 16 },
-  title: { fontSize: 22, fontWeight: "600" },
-  text: { fontSize: 16 },
-});

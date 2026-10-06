@@ -17,7 +17,7 @@ describe("ConfigurationErrorScreen", () => {
     );
 
     expect(
-      screen.getByRole("header", {
+      screen.getByRole("heading", {
         name: "This build of the app isn't set up",
       }),
     ).toBeTruthy();
