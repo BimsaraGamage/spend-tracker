@@ -22,3 +22,4 @@ Significant, hard-to-reverse decisions about the system's structure ([ARC4](../e
 | [0013](0013-license-and-contributions.md)       | License and contributions                           | Accepted                            |
 | [0014](0014-upload-inserts-and-sync-indexes.md) | Plain inserts for uploads, no sync-filter indexes   | Accepted                            |
 | [0015](0015-translations-with-i18next.md)       | Translations with i18next                           | Accepted                            |
+| [0016](0016-styling-with-uniwind.md)            | Styling with Uniwind and React Native Reusables     | Accepted                            |
