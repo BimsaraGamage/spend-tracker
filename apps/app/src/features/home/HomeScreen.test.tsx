@@ -9,6 +9,6 @@ describe("HomeScreen", () => {
   test("shows the app's name as the screen's heading", async () => {
     await render(<HomeScreen />);
 
-    expect(screen.getByRole("header", { name: "Spend Tracker" })).toBeTruthy();
+    expect(screen.getByRole("heading", { name: "Spend Tracker" })).toBeTruthy();
   });
 });
