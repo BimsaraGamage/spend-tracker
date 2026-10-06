@@ -1,5 +1,6 @@
 # Generated files
 pnpm-lock.yaml
+apps/app/src/uniwind-types.d.ts
 CHANGELOG.md
 
 # Verbatim third-party text (Contributor Covenant 3.0)
